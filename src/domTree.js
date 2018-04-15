@@ -188,6 +188,24 @@ class span<ChildType: VirtualNodeInterface> implements HtmlDomNode {
     }
 }
 
+class rawhtml implements HtmlDomNode {
+    constructor(val: string, size: number) {
+	this.val = val;
+        this.children = [];
+        this.classes = [];
+        this.height = size/2;
+        this.depth = size/2; // TEMP?? em??
+    }
+    toNode(): HTMLElement {
+	const a=document.createElement("span");
+	a.innerHTML=this.val;
+	return a;
+    }
+    toMarkup(): string {
+	return "<span>"+this.val+"</span>";
+    }
+}
+
 /**
  * This node represents an anchor (<a>) element with a hyperlink, a list of classes,
  * a list of children, and an inline style. It also contains information about its
@@ -669,6 +687,7 @@ export default {
     span,
     anchor,
     documentFragment,
+    rawhtml,
     symbolNode,
     svgNode,
     pathNode,

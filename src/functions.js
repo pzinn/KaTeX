@@ -297,6 +297,7 @@ import "./functions/verb";
 
 // Hyperlinks
 import "./functions/href";
+import "./functions/html";
 
 // MathChoice
 import "./functions/mathchoice";
