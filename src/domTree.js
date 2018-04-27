@@ -189,17 +189,17 @@ class span<ChildType: VirtualNodeInterface> implements HtmlDomNode {
 }
 
 class rawhtml implements HtmlDomNode {
-    constructor(val: string, size: number) {
+    constructor(height: number, depth: number, val: string) {
 	this.val = val;
         this.children = [];
         this.classes = [];
-        this.height = size/2;
-        this.depth = size/2; // TEMP?? em??
+        this.height = height;
+        this.depth = depth;
     }
     toNode(): HTMLElement {
-	const a=document.createElement("span");
-	a.innerHTML=this.val;
-	return a;
+	const span=document.createElement("span");
+	span.innerHTML=this.val;
+	return span;
     }
     toMarkup(): string {
 	return "<span>"+this.val+"</span>";
