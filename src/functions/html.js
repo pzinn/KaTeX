@@ -12,21 +12,19 @@ defineFunction({
     type: "html",
     names: ["\\html"],
     props: {
-        numArgs: 1,
-	numOptionalArgs: 1,
-	argTypes: ["url","url"], // really, should just be raw?
+        numArgs: 3,
+	argTypes: ["url","url","url"], // really, last should just be raw? or text? and first 2 should be size
     },
-    handler: (context, args,optArgs) => {
-        const body = args[0].value;
-	const size = optArgs[0].value;
+    handler: (context, args) => {
         return {
             type: "html",
-            body: body,
-	    size: size,
+	    height: args[0].value,
+	    depth: args[1].value,
+            body: args[2].value
         };
     },
     htmlBuilder: (group, options) => {
-        return new domTree.rawhtml(group.value.body,group.value.size);
+        return new domTree.rawhtml(group.value.height,group.value.depth,group.value.body);
     },
     mathmlBuilder: (group, options) => {// TEMP
         const node = new mathMLTree.MathNode("mspace");
