@@ -117,6 +117,16 @@ defineMacro("\\rbrack", "]");
 defineMacro("\\aa", "\\r a");
 defineMacro("\\AA", "\\r A");
 
+// \DeclareTextCommandDefault{\textcopyright}{\textcircled{c}}
+// \DeclareTextCommandDefault{\textregistered}{\textcircled{%
+//      \check@mathfonts\fontsize\sf@size\z@\math@fontsfalse\selectfont R}}
+// \DeclareRobustCommand{\copyright}{%
+//    \ifmmode{\nfss@text{\textcopyright}}\else\textcopyright\fi}
+defineMacro("\\textcopyright", "\\textcircled{c}");
+defineMacro("\\copyright",
+    "\\TextOrMath{\\textcopyright}{\\text{\\textcopyright}}");
+defineMacro("\\textregistered", "\\textcircled{\\scriptsize R}");
+
 // Unicode double-struck letters
 defineMacro("\u2102", "\\mathbb{C}");
 defineMacro("\u210D", "\\mathbb{H}");
@@ -380,8 +390,11 @@ defineMacro("\\KaTeX",
 
 // \DeclareRobustCommand\hspace{\@ifstar\@hspacer\@hspace}
 // \def\@hspace#1{\hskip  #1\relax}
-// KaTeX doesn't do line breaks, so \hspace and \hspace* are the same as \kern
-defineMacro("\\hspace", "\\@ifstar\\kern\\kern");
+// \def\@hspacer#1{\vrule \@width\z@\nobreak
+//                 \hskip #1\hskip \z@skip}
+defineMacro("\\hspace", "\\@ifstar\\@hspacer\\@hspace");
+defineMacro("\\@hspace", "\\hskip #1\\relax");
+defineMacro("\\@hspacer", "\\rule{0pt}{0pt}\\hskip #1\\relax");
 
 //////////////////////////////////////////////////////////////////////
 // mathtools.sty
