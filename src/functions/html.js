@@ -14,6 +14,7 @@ defineFunction({
     props: {
         numArgs: 3,
 	argTypes: ["url","url","url"], // really, last should just be raw? or text? and first 2 should be size
+        allowedInText: true,
     },
     handler: (context, args) => {
         return {
