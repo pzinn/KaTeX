@@ -24,12 +24,17 @@
     text-align: center;
 
     > .katex {
-        display: inline-block;
-        text-align: initial;
+        display: block;
+        text-align: center;
         white-space: nowrap;
 
         > .katex-html {
-            display: inline-block;
+            display: block;
+
+            > .tag {
+                position: absolute;
+                right: 0px;
+            }
         }
     }
 }
@@ -58,6 +63,13 @@
         height: 1px;
         width: 1px;
         overflow: hidden;
+    }
+
+    .katex-html {
+        /* \newline is an empty block at top level, between .base elements */
+        > .newline {
+            display: block;
+        }
     }
 
     .base {
@@ -232,54 +244,6 @@
 
     .mspace {
         display: inline-block;
-
-        &.negativethinspace {
-            margin-left: -@thinspace;
-        }
-
-        &.muspace {
-            width: @muspace;
-        }
-
-        &.thinspace {
-            width: @thinspace;
-        }
-
-        &.negativemediumspace {
-            margin-left: -@mediumspace;
-        }
-
-        &.mediumspace {
-            width: @mediumspace;
-        }
-
-        &.thickspace {
-            width: @thickspace;
-        }
-
-        &.sixmuspace {
-            width: 0.333333em;
-        }
-
-        &.eightmuspace {
-            width: 0.444444em;
-        }
-
-        &.enspace {
-            width: 0.5em;
-        }
-
-        &.twelvemuspace {
-            width: 0.666667em;
-        }
-
-        &.quad {
-            width: 1em;
-        }
-
-        &.qquad {
-            width: 2em;
-        }
     }
 
     .llap,
