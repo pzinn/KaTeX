@@ -19,9 +19,9 @@ defineFunction({
     handler: (context, args) => {
         return {
             type: "html",
-	    height: args[0].value,
-	    depth: args[1].value,
-            body: args[2].value
+	    height: args[0].value.value,
+	    depth: args[1].value.value,
+            body: args[2].value.value
         };
     },
     htmlBuilder: (group, options) => {
