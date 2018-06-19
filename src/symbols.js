@@ -19,7 +19,7 @@
 
 import type {Mode} from "./types";
 
-type Font = "main" | "ams"
+type Font = "main" | "ams";
 // Some of these have a "-token" suffix since these are also used as `ParseNode`
 // types for raw text tokens, and we want to avoid conflicts with higher-level
 // `ParseNode` types. These `ParseNode`s are constructed within `Parser` by
@@ -592,7 +592,6 @@ defineSymbol(math, main, spacing, null, "\\nobreak");
 defineSymbol(math, main, spacing, null, "\\allowbreak");
 defineSymbol(math, main, punct, ",", ",");
 defineSymbol(math, main, punct, ";", ";");
-defineSymbol(math, main, punct, ":", "\\colon");
 defineSymbol(math, ams, bin, "\u22bc", "\\barwedge", true);
 defineSymbol(math, ams, bin, "\u22bb", "\\veebar", true);
 defineSymbol(math, main, bin, "\u2299", "\\odot", true);
@@ -618,7 +617,9 @@ defineSymbol(text, main, textord, "}", "\\textbraceright");
 defineSymbol(math, main, open, "{", "\\lbrace");
 defineSymbol(math, main, close, "}", "\\rbrace");
 defineSymbol(math, main, open, "[", "\\lbrack");
+defineSymbol(text, main, textord, "[", "\\lbrack");
 defineSymbol(math, main, close, "]", "\\rbrack");
+defineSymbol(text, main, textord, "]", "\\rbrack");
 defineSymbol(text, main, textord, "<", "\\textless"); // in T1 fontenc
 defineSymbol(text, main, textord, ">", "\\textgreater"); // in T1 fontenc
 defineSymbol(math, main, open, "\u230a", "\\lfloor", true);
