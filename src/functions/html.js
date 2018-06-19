@@ -25,7 +25,7 @@ defineFunction({
         };
     },
     htmlBuilder: (group, options) => {
-        return new domTree.rawhtml(group.value.height,group.value.depth,group.value.body);
+        return new domTree.rawhtml(group.height,group.depth,group.body);
     },
     mathmlBuilder: (group, options) => {// TEMP
         const node = new mathMLTree.MathNode("mspace");
