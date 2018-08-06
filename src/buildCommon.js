@@ -11,12 +11,14 @@ import symbols, {ligatures} from "./symbols";
 import utils from "./utils";
 import {wideCharacterFont} from "./wide-character";
 import {calculateSize} from "./units";
+import * as tree from "./tree";
 
 import type Options from "./Options";
-import type ParseNode from "./ParseNode";
-import type {NodeType} from "./ParseNode";
+import type {ParseNode} from "./parseNode";
+import type {NodeType} from "./parseNode";
 import type {CharacterMetrics} from "./fontMetrics";
-import type {Mode} from "./types";
+import type {FontVariant, Mode} from "./types";
+import type {documentFragment as HtmlDocumentFragment} from "./domTree";
 import type {HtmlDomNode, DomSpan, SvgSpan, CssStyle} from "./domTree";
 import type {Measurement} from "./units";
 
@@ -233,7 +235,7 @@ const makeOrd = function<NODETYPE: "spacing" | "mathord" | "textord">(
     group: ParseNode<NODETYPE>,
     options: Options,
     type: "mathord" | "textord",
-): domTree.symbolNode | domTree.documentFragment {
+): HtmlDocumentFragment | domTree.symbolNode {
     const mode = group.mode;
     const value = group.value;
 
@@ -307,13 +309,14 @@ const tryCombineChars = function(chars: HtmlDomNode[]): HtmlDomNode[] {
  * children.
  */
 const sizeElementFromChildren = function(
-    elem: DomSpan | domTree.anchor | domTree.documentFragment,
+    elem: DomSpan | domTree.anchor | HtmlDocumentFragment,
 ) {
     let height = 0;
     let depth = 0;
     let maxFontSize = 0;
 
-    for (const child of elem.children) {
+    for (let i = 0; i < elem.children.length; i++) {
+        const child = elem.children[i];
         if (child.height > height) {
             height = child.height;
         }
@@ -394,8 +397,8 @@ const makeAnchor = function(
  */
 const makeFragment = function(
     children: HtmlDomNode[],
-): domTree.documentFragment {
-    const fragment = new domTree.documentFragment(children);
+): HtmlDocumentFragment {
+    const fragment = new tree.documentFragment(children);
 
     sizeElementFromChildren(fragment);
 
@@ -488,7 +491,8 @@ const getVListChildrenAndDepth = function(params: VListParam): {
         // We always start at the bottom, so calculate the bottom by adding up
         // all the sizes
         let bottom = params.positionData;
-        for (const child of params.children) {
+        for (let i = 0; i < params.children.length; i++) {
+            const child = params.children[i];
             bottom -= child.type === "kern"
                 ? child.size
                 : child.elem.height + child.elem.depth;
@@ -529,7 +533,8 @@ const makeVList = function(params: VListParam, options: Options): DomSpan {
     // be positioned precisely without worrying about font ascent and
     // line-height.
     let pstrutSize = 0;
-    for (const child of children) {
+    for (let i = 0; i < children.length; i++) {
+        const child = children[i];
         if (child.type === "elem") {
             const elem = child.elem;
             pstrutSize = Math.max(pstrutSize, elem.maxFontSize, elem.height);
@@ -544,7 +549,8 @@ const makeVList = function(params: VListParam, options: Options): DomSpan {
     let minPos = depth;
     let maxPos = depth;
     let currPos = depth;
-    for (const child of children) {
+    for (let i = 0; i < children.length; i++) {
+        const child = children[i];
         if (child.type === "kern") {
             currPos += child.size;
         } else {
@@ -607,8 +613,8 @@ const makeVList = function(params: VListParam, options: Options): DomSpan {
 
 // Converts verb group into body string, dealing with \verb* form
 const makeVerb = function(group: ParseNode<"verb">, options: Options): string {
-    let text = group.value.body;
-    if (group.value.star) {
+    let text = group.body;
+    if (group.star) {
         text = text.replace(/ /g, '\u2423');  // Open Box
     } else {
         text = text.replace(/ /g, '\xA0');    // No-Break Space
@@ -695,7 +701,7 @@ const regularSpace: {[string]: { className?: string }} = {
  * - fontName: the "style" parameter to fontMetrics.getCharacterMetrics
  */
 // A map between tex font commands an MathML mathvariant attribute values
-const fontMap: {[string]: {| variant: string, fontName: string |}} = {
+const fontMap: {[string]: {| variant: FontVariant, fontName: string |}} = {
     // styles
     "mathbf": {
         variant: "bold",
@@ -746,7 +752,11 @@ const svgData: {
     [string]: ([string, number, number])
 } = {
      //   path, width, height
-    vec: ["vec", 0.471, 0.714],  // values from the font glyph
+    vec: ["vec", 0.471, 0.714],                // values from the font glyph
+    oiintSize1: ["oiintSize1", 0.957, 0.499],  // oval to overlay the integrand
+    oiintSize2: ["oiintSize2", 1.472, 0.659],
+    oiiintSize1: ["oiiintSize1", 1.304, 0.499],
+    oiiintSize2: ["oiiintSize2", 1.98, 0.659],
 };
 
 const staticSvg = function(value: string, options: Options): SvgSpan {

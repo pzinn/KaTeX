@@ -18,13 +18,13 @@ import domTree from "./src/domTree";
 import utils from "./src/utils";
 
 import type {SettingsOptions} from "./src/Settings";
-import type {AnyParseNode} from "./src/ParseNode";
+import type {AnyParseNode} from "./src/parseNode";
 
 import {defineSymbol} from './src/symbols';
 import {defineMacro} from './src/macros';
 import {setFontMetrics} from './src/fontMetrics';
 
-import {version} from "./package.json";
+declare var __VERSION__: string;
 
 /**
  * Parse and build an expression, and place that expression in the DOM node
@@ -134,7 +134,7 @@ export default {
     /**
      * Current KaTeX version
      */
-    version,
+    version: __VERSION__,
     /**
      * Renders the given LaTeX into an HTML+MathML combination, and adds
      * it as a child to the specified DOM node.
@@ -189,4 +189,12 @@ export default {
      * adds a new macro to builtin macro list
      */
     __defineMacro: defineMacro,
+    /**
+     * Expose the dom tree node types, which can be useful for type checking nodes.
+     *
+     * NOTE: This method is not currently recommended for public use.
+     * The internal tree representation is unstable and is very likely
+     * to change. Use at your own risk.
+     */
+    __domTree: domTree,
 };
