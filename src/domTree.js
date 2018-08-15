@@ -583,6 +583,7 @@ export function assertSpan(
 
 export default {
     span,
+    rawhtml,
     anchor,
     symbolNode,
     svgNode,

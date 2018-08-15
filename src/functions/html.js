@@ -13,15 +13,15 @@ defineFunction({
     names: ["\\html"],
     props: {
         numArgs: 3,
-	argTypes: ["url","url","url"], // really, last should just be raw? or text? and first 2 should be size
+	argTypes: ["url","size","size"], // really, first should be some new type ("raw"). FIX
         allowedInText: true,
     },
     handler: (context, args) => {
         return {
             type: "html",
-	    height: args[0].value.value,
-	    depth: args[1].value.value,
-            body: args[2].value.value
+	    height: args[1].result.value.number, // eww
+	    depth: args[2].result.value.number,
+            body: args[0].url
         };
     },
     htmlBuilder: (group, options) => {

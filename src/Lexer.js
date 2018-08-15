@@ -44,7 +44,7 @@ const controlWordWhitespaceRegex = new RegExp(
 const combiningDiacriticalMarkString = "[\u0300-\u036f]";
 export const combiningDiacriticalMarksEndRegex =
     new RegExp(`${combiningDiacriticalMarkString}+$`);
-const urlFunctionRegexString = "(\\\\href|\\\\url)" +
+const urlFunctionRegexString = "(\\\\href|\\\\url|\\\\html)" +
     `(?:${spaceRegexString}*\\{((?:[^{}\\\\]|\\\\[^]|{[^{}]*})*)\\}` +
     `|${spaceRegexString}+([^{}])` +
     `|${spaceRegexString}*([^{}a-zA-Z]))`;
