@@ -1,19 +1,18 @@
 // @flow
-import defineFunction, {ordargument} from "../defineFunction";
-import buildCommon from "../buildCommon";
+import defineFunction from "../defineFunction";
 import domTree from "../domTree";
 import mathMLTree from "../mathMLTree";
-import { calculateSize } from "../units";
+// import { calculateSize } from "../units";
 
-import * as html from "../buildHTML";
-import * as mml from "../buildMathML";
+//import * as html from "../buildHTML";
+//import * as mml from "../buildMathML";
 
 defineFunction({
     type: "html",
     names: ["\\html"],
     props: {
         numArgs: 3,
-	argTypes: ["url","size","size"], // really, first should be some new type ("raw"). FIX
+	argTypes: ["url","size","size"], // first should be new type ("raw"). FIX
         allowedInText: true,
     },
     handler: (context, args) => {
@@ -21,7 +20,7 @@ defineFunction({
             type: "html",
 	    height: args[1].result.value.number, // eww
 	    depth: args[2].result.value.number,
-            body: args[0].url
+            body: args[0].url,
         };
     },
     htmlBuilder: (group, options) => {
