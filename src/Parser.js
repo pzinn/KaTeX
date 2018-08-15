@@ -906,7 +906,7 @@ export default class Parser {
             // The token will be consumed later in parseGivenFunction
             // (after possibly switching modes).
             return newFunction(nucleus);
-        } else if (/^\\(href|url)[^a-zA-Z]/.test(text)) {
+        } else if (/^\\(href|url|html)[^a-zA-Z]/.test(text)) {
             const match = text.match(urlFunctionRegex);
             if (!match) {
                 throw new ParseError(
@@ -924,7 +924,7 @@ export default class Parser {
             let protocol = /^\s*([^\\/#]*?)(?::|&#0*58|&#x0*3a)/i.exec(url);
             protocol = (protocol != null ? protocol[1] : "_relative");
             const allowed = this.settings.allowedProtocols;
-            if (!utils.contains(allowed,  "*") &&
+            if (funcName !== "\\html" && !utils.contains(allowed,  "*") &&
                 !utils.contains(allowed, protocol)) {
                 throw new ParseError(
                     `Forbidden protocol '${protocol}' in ${funcName}`, nucleus);
@@ -949,7 +949,14 @@ export default class Parser {
                 }
                 return newArgument(this.callFunction(
                     funcName, [urlArg, description], []), nucleus);
-            } else {  // one argument (\url)
+            } else if (funcName === "\\html") { // 3 args
+                this.consumeSpaces();  // ignore spaces between arguments
+                let size1 = this.parseGroupOfType("size", false);
+                let size2 = this.parseGroupOfType("size", false);
+		return newArgument(this.callFunction(
+		    funcName, [urlArg, size1, size2], []), nucleus);
+	    }
+	    else {  // one argument (\url)
                 return newArgument(this.callFunction(
                     funcName, [urlArg], []), nucleus);
             }

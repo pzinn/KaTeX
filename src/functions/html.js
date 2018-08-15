@@ -1,27 +1,26 @@
 // @flow
-import defineFunction, {ordargument} from "../defineFunction";
-import buildCommon from "../buildCommon";
+import defineFunction from "../defineFunction";
 import domTree from "../domTree";
 import mathMLTree from "../mathMLTree";
-import { calculateSize } from "../units";
+// import { calculateSize } from "../units";
 
-import * as html from "../buildHTML";
-import * as mml from "../buildMathML";
+//import * as html from "../buildHTML";
+//import * as mml from "../buildMathML";
 
 defineFunction({
     type: "html",
     names: ["\\html"],
     props: {
         numArgs: 3,
-	argTypes: ["url","url","url"], // really, last should just be raw? or text? and first 2 should be size
+	argTypes: ["url","size","size"], // first should be new type ("raw"). FIX
         allowedInText: true,
     },
     handler: (context, args) => {
         return {
             type: "html",
-	    height: args[0].value.value,
-	    depth: args[1].value.value,
-            body: args[2].value.value
+	    height: args[1].result.value.number, // eww
+	    depth: args[2].result.value.number,
+            body: args[0].url,
         };
     },
     htmlBuilder: (group, options) => {
