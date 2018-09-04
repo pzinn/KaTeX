@@ -446,12 +446,13 @@
 
         // We want to inherit colors from our environment
         fill: currentColor;
-        stroke: currentColor;
+	//        stroke: currentColor;
+	stroke: none;
 
         // But path elements should not have an outline by default
         // that would make them bigger than we expect.
         path {
-            stroke: none;
+//            stroke: none;
         }
 
         // And we don't want to inherit any other style properties
