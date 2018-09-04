@@ -8,8 +8,8 @@ import mathMLTree from "../mathMLTree";
 //import * as mml from "../buildMathML";
 
 defineFunction({
-    type: "html",
-    names: ["\\html"],
+    type: "rawhtml",
+    names: ["\\rawhtml"],
     props: {
         numArgs: 3,
 	argTypes: ["url","size","size"], // first should be new type ("raw"). FIX
@@ -17,7 +17,7 @@ defineFunction({
     },
     handler: (context, args) => {
         return {
-            type: "html",
+            type: "rawhtml",
 	    height: args[1].result.value.number, // eww
 	    depth: args[2].result.value.number,
             body: args[0].url,

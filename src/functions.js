@@ -46,4 +46,4 @@ import "./functions/text";
 import "./functions/underline";
 import "./functions/verb";
 
-import "./functions/html";
+import "./functions/rawhtml";
