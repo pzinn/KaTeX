@@ -1,6 +1,6 @@
 // @flow
 import defineFunction from "../defineFunction";
-import domTree from "../domTree";
+import { rawhtml } from "../domTree";
 import mathMLTree from "../mathMLTree";
 // import { calculateSize } from "../units";
 
@@ -24,7 +24,7 @@ defineFunction({
         };
     },
     htmlBuilder: (group, options) => {
-        return new domTree.rawhtml(group.height,group.depth,group.body);
+        return new rawhtml(group.height,group.depth,group.body);
     },
     mathmlBuilder: (group, options) => {// TEMP
         const node = new mathMLTree.MathNode("mspace");

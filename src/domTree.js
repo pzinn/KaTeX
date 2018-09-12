@@ -408,7 +408,7 @@ export class SymbolNode implements HtmlDomNode {
     }
 }
 
-class rawhtml implements HtmlDomNode {
+export class rawhtml implements HtmlDomNode {
     constructor(height: number, depth: number, val: string) {
 	this.val = val;
         this.children = [];
