@@ -416,6 +416,9 @@ class rawhtml implements HtmlDomNode {
         this.height = height;
         this.depth = depth;
     }
+    hasClass(className: string): boolean {
+        return utils.contains(this.classes, className);
+    }
     toNode(): HTMLElement {
 	const span=document.createElement("span");
 	span.innerHTML=this.val;
@@ -565,12 +568,3 @@ export function assertSpan(
     }
 }
 
-export default {
-    span,
-    rawhtml,
-    anchor,
-    symbolNode,
-    svgNode,
-    pathNode,
-    lineNode,
-};
