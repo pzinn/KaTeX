@@ -412,7 +412,7 @@ export class rawhtml implements HtmlDomNode {
     constructor(height: number, depth: number, val: string) {
 	this.val = val;
         this.children = [];
-        this.classes = [];
+	this.classes = [ "mspace" ];
         this.height = height;
         this.depth = depth;
     }
@@ -422,10 +422,11 @@ export class rawhtml implements HtmlDomNode {
     toNode(): HTMLElement {
 	const span=document.createElement("span");
 	span.innerHTML=this.val;
-	return span;
+	return span; // not quite right but what to do?
     }
     toMarkup(): string {
-	return "<span>"+this.val+"</span>";
+//		return "<span>"+this.val+"</span>";
+	return this.val; // !!!
     }
 }
 
