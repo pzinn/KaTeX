@@ -9,6 +9,14 @@ import * as mml from "../buildMathML";
 
 import type {ParseNode} from "../parseNode";
 
+// Helper function
+const paddedNode = group => {
+    const node = new mathMLTree.MathNode("mpadded", group ? [group] : []);
+    node.setAttribute("width", "+0.6em");
+    node.setAttribute("lspace", "0.3em");
+    return node;
+};
+
 // Stretchy arrows with an optional argument
 defineFunction({
     type: "xArrow",
@@ -44,15 +52,19 @@ defineFunction({
         // Build the argument groups in the appropriate style.
         // Ref: amsmath.dtx:   \hbox{$\scriptstyle\mkern#3mu{#6}\mkern#4mu$}%
 
+        // Some groups can return document fragments.  Handle those by wrapping
+        // them in a span.
         let newOptions = options.havingStyle(style.sup());
-        const upperGroup = html.buildGroup(group.body, newOptions, options);
+        const upperGroup = buildCommon.wrapFragment(
+            html.buildGroup(group.body, newOptions, options), options);
         upperGroup.classes.push("x-arrow-pad");
 
         let lowerGroup;
         if (group.below) {
             // Build the lower group
             newOptions = options.havingStyle(style.sub());
-            lowerGroup = html.buildGroup(group.below, newOptions, options);
+            lowerGroup = buildCommon.wrapFragment(
+                html.buildGroup(group.below, newOptions, options), options);
             lowerGroup.classes.push("x-arrow-pad");
         }
 
@@ -101,12 +113,11 @@ defineFunction({
     mathmlBuilder(group, options) {
         const arrowNode = stretchy.mathMLnode(group.label);
         let node;
-        let lowerNode;
 
         if (group.body) {
-            const upperNode = mml.buildGroup(group.body, options);
+            const upperNode = paddedNode(mml.buildGroup(group.body, options));
             if (group.below) {
-                lowerNode = mml.buildGroup(group.below, options);
+                const lowerNode = paddedNode(mml.buildGroup(group.below, options));
                 node = new mathMLTree.MathNode(
                     "munderover", [arrowNode, lowerNode, upperNode]
                 );
@@ -114,10 +125,13 @@ defineFunction({
                 node = new mathMLTree.MathNode("mover", [arrowNode, upperNode]);
             }
         } else if (group.below) {
-            lowerNode = mml.buildGroup(group.below, options);
+            const lowerNode = paddedNode(mml.buildGroup(group.below, options));
             node = new mathMLTree.MathNode("munder", [arrowNode, lowerNode]);
         } else {
-            node = new mathMLTree.MathNode("mover", [arrowNode]);
+            // This should never happen.
+            // Parser.js throws an error if there is no argument.
+            node = paddedNode();
+            node = new mathMLTree.MathNode("mover", [arrowNode, node]);
         }
         return node;
     },

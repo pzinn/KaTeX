@@ -1,7 +1,15 @@
 // @flow
 const path = require('path');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
+const {version} = require("./package.json");
+
+const browserslist = require('browserslist')();
+const caniuse = require('caniuse-lite');
+
+// from the least supported to the most supported
+const fonts = ['woff2', 'woff', 'ttf'];
 
 /*::
 type Target = {|
@@ -26,12 +34,20 @@ const targets /*: Array<Target> */ = [
         library: 'renderMathInElement',
     },
     {
+        name: 'contrib/mhchem',
+        entry: './contrib/mhchem/mhchem.js',
+    },
+    {
         name: 'contrib/copy-tex',
-        entry: './contrib/copy-tex/copy-tex.js',
+        entry: './contrib/copy-tex/copy-tex.webpack.js',
     },
     {
         name: 'contrib/mathtex-script-type',
         entry: './contrib/mathtex-script-type/mathtex-script-type.js',
+    },
+    {
+        name: 'contrib/render-a11y-string',
+        entry: './contrib/render-a11y-string/render-a11y-string.js',
     },
 ];
 
@@ -49,11 +65,22 @@ function createConfig(target /*: Target */, dev /*: boolean */,
         });
     }
 
-    const lessOptions = {};
-    if (process.env.USE_TTF === "false") {
-        lessOptions.modifyVars = {
-            'use-ttf': false,
-        };
+    const lessOptions = {modifyVars: {
+        version: `"${version}"`,
+    }};
+
+    // use only necessary fonts, overridable by environment variables
+    let isCovered = false;
+    for (const font of fonts) {
+        const override = process.env[`USE_${font.toUpperCase()}`];
+        const useFont = override === "true" || override !== "false" && !isCovered;
+        lessOptions.modifyVars[`use-${font}`] = useFont;
+
+        const support = caniuse.feature(caniuse.features[font]).stats;
+        isCovered = isCovered || useFont && browserslist.every(browser => {
+            const [name, version] = browser.split(' ');
+            return !support[name] || support[name][version] === 'y';
+        });
     }
 
     return {
@@ -119,8 +146,8 @@ function createConfig(target /*: Target */, dev /*: boolean */,
         optimization: {
             minimize,
             minimizer: [
-                new UglifyJsPlugin({
-                    uglifyOptions: {
+                new TerserPlugin({
+                    terserOptions: {
                         output: {
                             ascii_only: true,
                         },

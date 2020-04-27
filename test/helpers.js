@@ -60,6 +60,7 @@ const printExpectedResult = (mode, isNot, expectedError) => expectedError == nul
 
 export const nonstrictSettings = new Settings({strict: false});
 export const strictSettings = new Settings({strict: true});
+export const trustSettings = new Settings({trust: true});
 
 /**
  * Return the root node of the rendered HTML.
@@ -149,7 +150,7 @@ export const expectKaTeX = (expr, settings, mode, isNot, expectedError) => {
         pass,
         message: () => 'Expected the expression to ' +
             printExpectedResult(mode.noun, isNot, expectedError) +
-            `:\n  ${printReceived(expr)}\n` +
+            `:\n  ${printReceived(r(expr))}\n` +
             printActualErrorMessage(error),
     };
 };
@@ -163,15 +164,15 @@ export const expectEquivalent = (actual, expected, settings, mode, expand) => {
         pass,
         message: pass
             ? () =>
-                `${mode.Verb} trees of ${printReceived(actual)} and ` +
-                `${printExpected(expected)} are equivalent`
+                `${mode.Verb} trees of ${printReceived(r(actual))} and ` +
+                `${printExpected(r(expected))} are equivalent`
             : () => {
                 const diffString = diff(expectedTree, actualTree, {
                     expand,
                 });
 
-                return `${mode.Verb} trees of ${printReceived(actual)} and ` +
-                `${printExpected(expected)} are not equivalent` +
+                return `${mode.Verb} trees of ${printReceived(r(actual))} and ` +
+                `${printExpected(r(expected))} are not equivalent` +
                 (diffString ? `:\n\n${diffString}` : '');
             },
     };

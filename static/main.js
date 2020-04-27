@@ -14,7 +14,7 @@ function init() {
     input.addEventListener("input", reprocess, false);
     permalink.addEventListener("click", setSearch);
 
-    const options = {displayMode: true, throwOnError: false};
+    const options = {displayMode: true, throwOnError: true, trust: true};
     const macros = {};
     const query = queryString.parse(window.location.search);
 
@@ -29,6 +29,16 @@ function init() {
         options.displayMode = false;
     }
 
+    // Use `leqno=1` (or `=t`/`=true`/`=y`/`=yes`) to put tags on left side.
+    if (query.leqno && query.leqno.match(/^(1|t|y)/)) {
+        options.leqno = true;
+    }
+
+    // Use `fleqn=1` (or `=t`/`=true`/`=y`/`=yes`) to put tags on left side.
+    if (query.fleqn && query.fleqn.match(/^(1|t|y)/)) {
+        options.fleqn = true;
+    }
+
     // Use `strict=warn` for warning strict mode or `strict=error`
     // (or `=1`/`=t`/`=true`/`=y`/`=yes`)
     // to turn off displayMode (which is on by default).
@@ -38,6 +48,11 @@ function init() {
         } if (query.strict && query.strict.match(/^(w)/)) {
             options.strict = "warn";
         }
+    }
+
+    // Use `trust=0` (or `=f`/`=false`/`=n`/`=no`) to not trust input.
+    if (query.trust && query.trust.match(/^(0|f|n)/)) {
+        options.trust = false;
     }
 
     // The `before` or `pre` search parameter puts normal text before the math.

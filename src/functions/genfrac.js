@@ -4,29 +4,36 @@ import buildCommon from "../buildCommon";
 import delimiter from "../delimiter";
 import mathMLTree from "../mathMLTree";
 import Style from "../Style";
-import {assertNodeType, assertAtomFamily, checkNodeType} from "../parseNode";
+import {assertNodeType} from "../parseNode";
 import {assert} from "../utils";
 
 import * as html from "../buildHTML";
 import * as mml from "../buildMathML";
 import {calculateSize} from "../units";
 
-const htmlBuilder = (group, options) => {
-    // Fractions are handled in the TeXbook on pages 444-445, rules 15(a-e).
+const adjustStyle = (size, originalStyle) => {
     // Figure out what style this fraction should be in based on the
     // function used
-    let style = options.style;
-    if (group.size === "display") {
-        style = Style.DISPLAY;
-    } else if (group.size === "text" &&
+    let style = originalStyle;
+    if (size === "display") {
+        // Get display style as a default.
+        // If incoming style is sub/sup, use style.text() to get correct size.
+        style = style.id >= Style.SCRIPT.id ? style.text() : Style.DISPLAY;
+    } else if (size === "text" &&
         style.size === Style.DISPLAY.size) {
         // We're in a \tfrac but incoming style is displaystyle, so:
         style = Style.TEXT;
-    } else if (group.size === "script") {
+    } else if (size === "script") {
         style = Style.SCRIPT;
-    } else if (group.size === "scriptscript") {
+    } else if (size === "scriptscript") {
         style = Style.SCRIPTSCRIPT;
     }
+    return style;
+};
+
+const htmlBuilder = (group, options) => {
+    // Fractions are handled in the TeXbook on pages 444-445, rules 15(a-e).
+    const style = adjustStyle(group.size, options.style);
 
     const nstyle = style.fracNum();
     const dstyle = style.fracDen();
@@ -69,7 +76,7 @@ const htmlBuilder = (group, options) => {
     let numShift;
     let clearance;
     let denomShift;
-    if (style.size === Style.DISPLAY.size) {
+    if (style.size === Style.DISPLAY.size || group.size === "display") {
         numShift = options.fontMetrics().num1;
         if (ruleWidth > 0) {
             clearance = 3 * ruleSpacing;
@@ -176,7 +183,7 @@ const htmlBuilder = (group, options) => {
 };
 
 const mathmlBuilder = (group, options) => {
-    const node = new mathMLTree.MathNode(
+    let node = new mathMLTree.MathNode(
         "mfrac",
         [
             mml.buildGroup(group.numer, options),
@@ -190,12 +197,22 @@ const mathmlBuilder = (group, options) => {
         node.setAttribute("linethickness", ruleWidth + "em");
     }
 
+    const style = adjustStyle(group.size, options.style);
+    if (style.size !== options.style.size) {
+        node = new mathMLTree.MathNode("mstyle", [node]);
+        const isDisplay = (style.size === Style.DISPLAY.size) ? "true" : "false";
+        node.setAttribute("displaystyle", isDisplay);
+        node.setAttribute("scriptlevel", "0");
+    }
+
     if (group.leftDelim != null || group.rightDelim != null) {
         const withDelims = [];
 
         if (group.leftDelim != null) {
             const leftOp = new mathMLTree.MathNode(
-                "mo", [new mathMLTree.TextNode(group.leftDelim)]);
+                "mo",
+                [new mathMLTree.TextNode(group.leftDelim.replace("\\", ""))]
+            );
 
             leftOp.setAttribute("fence", "true");
 
@@ -206,7 +223,9 @@ const mathmlBuilder = (group, options) => {
 
         if (group.rightDelim != null) {
             const rightOp = new mathMLTree.MathNode(
-                "mo", [new mathMLTree.TextNode(group.rightDelim)]);
+                "mo",
+                [new mathMLTree.TextNode(group.rightDelim.replace("\\", ""))]
+            );
 
             rightOp.setAttribute("fence", "true");
 
@@ -363,21 +382,10 @@ defineFunction({
         const denom = args[5];
 
         // Look into the parse nodes to get the desired delimiters.
-        let leftNode = checkNodeType(args[0], "ordgroup");
-        if (leftNode) {
-            leftNode = assertAtomFamily(leftNode.body[0], "open");
-        } else {
-            leftNode = assertAtomFamily(args[0], "open");
-        }
-        const leftDelim = delimFromValue(leftNode.text);
-
-        let rightNode = checkNodeType(args[1], "ordgroup");
-        if (rightNode) {
-            rightNode = assertAtomFamily(rightNode.body[0], "close");
-        } else {
-            rightNode = assertAtomFamily(args[1], "close");
-        }
-        const rightDelim = delimFromValue(rightNode.text);
+        const leftDelim = args[0].type === "atom" && args[0].family === "open"
+            ? delimFromValue(args[0].text) : null;
+        const rightDelim = args[1].type === "atom" && args[1].family === "close"
+            ? delimFromValue(args[1].text) : null;
 
         const barNode = assertNodeType(args[2], "size");
         let hasBarLine;
@@ -394,14 +402,14 @@ defineFunction({
 
         // Find out if we want displaystyle, textstyle, etc.
         let size = "auto";
-        let styl = checkNodeType(args[3], "ordgroup");
-        if (styl) {
+        let styl = args[3];
+        if (styl.type === "ordgroup") {
             if (styl.body.length > 0) {
                 const textOrd = assertNodeType(styl.body[0], "textord");
                 size = stylArray[Number(textOrd.text)];
             }
         } else {
-            styl = assertNodeType(args[3], "textord");
+            styl = assertNodeType(styl, "textord");
             size = stylArray[Number(styl.text)];
         }
 

@@ -35,7 +35,8 @@ const delimiterSizes = {
 };
 
 const delimiters = [
-    "(", ")", "[", "\\lbrack", "]", "\\rbrack",
+    "(", "\\lparen", ")", "\\rparen",
+    "[", "\\lbrack", "]", "\\rbrack",
     "\\{", "\\lbrace", "\\}", "\\rbrace",
     "\\lfloor", "\\rfloor", "\u230a", "\u230b",
     "\\lceil", "\\rceil", "\u2308", "\u2309",
@@ -61,11 +62,12 @@ function checkDelimiter(
     const symDelim = checkSymbolNodeType(delim);
     if (symDelim && utils.contains(delimiters, symDelim.text)) {
         return symDelim;
-    } else {
+    } else if (symDelim) {
         throw new ParseError(
-            "Invalid delimiter: '" +
-            (symDelim ? symDelim.text : JSON.stringify(delim)) +
-            "' after '" + context.funcName + "'", delim);
+            `Invalid delimiter '${symDelim.text}' after '${context.funcName}'`,
+            delim);
+    } else {
+        throw new ParseError(`Invalid delimiter type '${delim.type}'`, delim);
     }
 }
 
@@ -144,10 +146,16 @@ defineFunction({
         // \left case below triggers parsing of \right in
         //   `const right = parser.parseFunction();`
         // uses this return value.
+        const color = context.parser.gullet.macros.get("\\current@color");
+        if (color && typeof color !== "string") {
+            throw new ParseError(
+                "\\current@color set to non-string in \\right");
+        }
         return {
             type: "leftright-right",
             mode: context.parser.mode,
             delim: checkDelimiter(args[0], context).text,
+            color, // undefined if not set via \color
         };
     },
 });
@@ -170,23 +178,21 @@ defineFunction({
         --parser.leftrightDepth;
         // Check the next token
         parser.expect("\\right", false);
-        const right = parser.parseFunction();
-        if (!right) {
-            throw new ParseError('failed to parse function after \\right');
-        }
+        const right = assertNodeType(parser.parseFunction(), "leftright-right");
         return {
             type: "leftright",
             mode: parser.mode,
             body,
             left: delim.text,
-            right: assertNodeType(right, "leftright-right").delim,
+            right: right.delim,
+            rightColor: right.color,
         };
     },
     htmlBuilder: (group, options) => {
         assertParsed(group);
         // Build the inner expression
         const inner = html.buildExpression(group.body, options, true,
-            [null, "mclose"]);
+            ["mopen", "mclose"]);
 
         let innerHeight = 0;
         let innerDepth = 0;
@@ -243,12 +249,14 @@ defineFunction({
         }
 
         let rightDelim;
-        // Same for the right delimiter
+        // Same for the right delimiter, but using color specified by \color
         if (group.right === ".") {
             rightDelim = html.makeNullDelimiter(options, ["mclose"]);
         } else {
+            const colorOptions = group.rightColor ?
+                options.withColor(group.rightColor) : options;
             rightDelim = delimiter.leftRightDelim(
-                group.right, innerHeight, innerDepth, options,
+                group.right, innerHeight, innerDepth, colorOptions,
                 group.mode, ["mclose"]);
         }
         // Add it to the end of the expression.
@@ -274,6 +282,10 @@ defineFunction({
                 "mo", [mml.makeText(group.right, group.mode)]);
 
             rightNode.setAttribute("fence", "true");
+
+            if (group.rightColor) {
+                rightNode.setAttribute("mathcolor", group.rightColor);
+            }
 
             inner.push(rightNode);
         }
@@ -320,9 +332,19 @@ defineFunction({
         return middleDelim;
     },
     mathmlBuilder: (group, options) => {
-        const middleNode = new mathMLTree.MathNode(
-            "mo", [mml.makeText(group.delim, group.mode)]);
+        // A Firefox \middle will strech a character vertically only if it
+        // is in the fence part of the operator dictionary at:
+        // https://www.w3.org/TR/MathML3/appendixc.html.
+        // So we need to avoid U+2223 and use plain "|" instead.
+        const textNode = (group.delim === "\\vert" || group.delim === "|")
+            ? mml.makeText("|", "text")
+            : mml.makeText(group.delim, group.mode);
+        const middleNode = new mathMLTree.MathNode("mo", [textNode]);
         middleNode.setAttribute("fence", "true");
+        // MathML gives 5/18em spacing to each <mo> element.
+        // \middle should get delimiter spacing instead.
+        middleNode.setAttribute("lspace", "0.05em");
+        middleNode.setAttribute("rspace", "0.05em");
         return middleNode;
     },
 });

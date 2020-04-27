@@ -2,7 +2,7 @@
 id: support_table
 title: Support Table
 ---
-This is a list of TeX functions, sorted alphabetically. This list includes functions that KaTeX supports and some that it doesn't support. There is a similar page, with functions [sorted by type](./supported.md).
+This is a list of TeX functions, sorted alphabetically. This list includes functions that KaTeX supports and some that it doesn't support. There is a similar page, with functions [sorted by type](supported.md).
 
 If you know the shape of a character, but not its name, [Detexify](http://detexify.kirelabs.org/classify.html) can help.
 
@@ -40,10 +40,11 @@ table td {
 |\\;|$a\;\;{b}$|a`\;\;{b}`|
 |_|$x_i$|`x_i`|
 |\\_|$\_$||
-|\\\`|$\text{\`{a}}$|<code>\text{\\'{a}}</code>|
+|\\\`|$\text{\`{a}}$|`\text{\\'{a}}`|
 |&#060;|$<$||
-|\\=|$\text{\={a}}$|<code>\text{\\={a}}</code>|
+|\\=|$\text{\={a}}$|`\text{\\={a}}`|
 | >|$>$||
+|\\>|$a\>\>{b}$|`a\>\>{b}`|
 |\[|$[$||
 |\]|$]$||
 |{|${a}$|`{a}`|
@@ -53,10 +54,10 @@ table td {
 |&#124;|$\vert$||
 |\\&#124;|$\Vert$||
 |~|$\text{no~no~no~breaks}$|`\text{no~no~no~breaks}`|
-|\\~|$\text{\~{a}}$|<code>\text{\\~{a}}</code>|
+|\\~|$\text{\~{a}}$|`\text{\\~{a}}`|
 |\\\\|$\begin{matrix} a & b\\ c & d\end{matrix}$|`\begin{matrix}`<br>&nbsp;&nbsp;&nbsp;`a & b \\`<br>&nbsp;&nbsp;&nbsp;`c & d`<br>`\end{matrix}`|
 |^|$x^i$|`x^i`|
-|\\^|$\text{\^{a}}$|<code>\text{\\^{a}}</code>|
+|\\^|$\text{\^{a}}$|`\text{\\^{a}}`|
 
 ## A
 
@@ -93,6 +94,8 @@ table td {
 |\arctan|$\arctan$||
 |\arctg|$\arctg$||
 |\arg|$\arg$||
+|\argmax|$\argmax$||
+|\argmin|$\argmin$||
 |{array}|$\begin{array}{cc}a&b\\c&d\end{array}$ | `\begin{array}{cc}`<br>&nbsp;&nbsp;&nbsp;`a & b \\`<br>&nbsp;&nbsp;&nbsp;`c & d`<br>`\end{array}`|
 |\array|<span style="color:firebrick;">Not supported</span>|see `{array}`|
 |\arraystretch|$\def\arraystretch{1.5}\begin{array}{cc}a&b\\c&d\end{array}$|`\def\arraystretch{1.5}`<br>`\begin{array}{cc}`<br>&nbsp;&nbsp;&nbsp;`a & b \\`<br>&nbsp;&nbsp;&nbsp;`c & d`<br>`\end{array}`|
@@ -114,7 +117,7 @@ table td {
 |\backslash|$\backslash$||
 |\bar|$\bar{y}$|`\bar{y}`|
 |\barwedge|$\barwedge$||
-|\Bbb|$\Bbb{ABC}$|`\Bbb{ABC}`<br>KaTeX supports A-Z & k
+|\Bbb|$\Bbb{ABC}$|`\Bbb{ABC}`<br>KaTeX supports A-Z & k|
 |\Bbbk|$\Bbbk$||
 |\bbox|<span style="color:firebrick;">Not supported</span>||
 |\bcancel|$\bcancel{5}$|`\bcancel{5}`|
@@ -126,6 +129,7 @@ table td {
 |\beth|$\beth$||
 |\between|$\between$||
 |\bf|$\bf AaBb12$|`\bf AaBb12`|
+|\bfseries|<span style="color:firebrick;">Not supported</span>||
 |\big|$\big(\big)$|`\big(\big)`|
 |\Big|$\Big(\Big)$|`\Big(\Big)`|
 |\bigcap|$\bigcap$||
@@ -144,13 +148,13 @@ table td {
 |\bigm|$\bigm\vert$|`\bigm\vert`|
 |\Bigm|$\Bigm\vert$|`\Bigm\vert`|
 |\bigodot|$\bigodot$||
-|\bigominus|<span style="color:firebrick;">Not supported</span>|[Issue #1222](https://github.com/Khan/KaTeX/issues/1222)|
+|\bigominus|<span style="color:firebrick;">Not supported</span>|[Issue #1222](https://github.com/KaTeX/KaTeX/issues/1222)|
 |\bigoplus|$\bigoplus$||
-|\bigoslash|<span style="color:firebrick;">Not supported</span>|[Issue #1222](https://github.com/Khan/KaTeX/issues/1222)|
+|\bigoslash|<span style="color:firebrick;">Not supported</span>|[Issue #1222](https://github.com/KaTeX/KaTeX/issues/1222)|
 |\bigotimes|$\bigotimes$||
 |\bigr|$\bigr)$|`\bigr)`|
 |\Bigr|$\Bigr)$|`\Bigr)`|
-|\bigsqcap|<span style="color:firebrick;">Not supported</span>|[Issue #1222](https://github.com/Khan/KaTeX/issues/1222)|
+|\bigsqcap|<span style="color:firebrick;">Not supported</span>|[Issue #1222](https://github.com/KaTeX/KaTeX/issues/1222)|
 |\bigsqcup|$\bigsqcup$||
 |\bigstar|$\bigstar$||
 |\bigtriangledown|$\bigtriangledown$||
@@ -179,6 +183,9 @@ table td {
 |\boxminus|$\boxminus$||
 |\boxplus|$\boxplus$||
 |\boxtimes|$\boxtimes$||
+|\Bra|$\left\langle\psi\right\|$|`\Bra{\psi}`|
+|\bra|$\mathinner{\langle{\psi}\|}$|`\bra{\psi}`|
+|\braket|$\mathinner{\langle{\phi\|\psi}\rangle}$|`\braket{\phi|\psi}`|
 |\brace|${n\brace k}$|`{n\brace k}`|
 |\bracevert|<span style="color:firebrick;">Not supported</span>||
 |\brack|${n\brack k}$|`{n\brack k}`|
@@ -194,7 +201,7 @@ table td {
 |Symbol/Function |  Rendered   | Source or Comment|
 |:---------------|:------------|:-----------------|
 |\C|<span style="color:firebrick;">Not supported</span>|[Deprecated](https://en.wikipedia.org/wiki/Help:Displaying_a_formula#Deprecated_syntax)|
-|\cal|<span style="color:firebrick;">Not supported</span>|See `\mathcal`
+|\cal|$\cal AaBb123$|`\cal AaBb123`|
 |\cancel|$\cancel{5}$|`\cancel{5}`|
 |\cancelto|<span style="color:firebrick;">Not supported</span>||
 |\Cap|$\Cap$||
@@ -205,10 +212,11 @@ table td {
 |\cdot|$\cdot$||
 |\cdotp|$\cdotp$||
 |\cdots|$\cdots$||
-|\ce |<span style="color:firebrick;">Not supported</span>|A PR is pending
+|\ce |${\mathrm{C}{\vphantom{X}}_{\smash[t]{6}}\mathrm{H}{\vphantom{X}}_{\smash[t]{5}}{-}\mathrm{CHO}}$|`\ce{C6H5-CHO}` Requires an [extension](https://github.com/KaTeX/KaTeX/tree/master/contrib/mhchem/)|
 |\cee|<span style="color:firebrick;">Not supported</span>|Deprecated by mhchem
 |\centerdot|$a\centerdot b$|`a\centerdot b`|
-|\cf|<span style="color:firebrick;">Not supported</span>|Deprecated by mhchem|
+|\cf|<span style="color:firebrick;">Not supported</span>|Deprecated by mhchem;
+use `\ce` instead|
 |\cfrac|$\cfrac{2}{1+\cfrac{2}{1+\cfrac{2}{1}}}$|`\cfrac{2}{1+\cfrac{2}{1+\cfrac{2}{1}}}`|
 |\check|$\check{oe}$|`\check{oe}`|
 |\ch|$\ch$||
@@ -226,7 +234,7 @@ table td {
 |\circledR|$\circledR$||
 |\circledS|$\circledS$||
 |\class|<span style="color:firebrick;">Not supported</span>|A PR is pending.
-|\cline|<span style="color:firebrick;">Not supported</span>|[Issue #269](https://github.com/Khan/KaTeX/issues/269)|
+|\cline|<span style="color:firebrick;">Not supported</span>|[Issue #269](https://github.com/KaTeX/KaTeX/issues/269)|
 |\clubs|$\clubs$||
 |\clubsuit|$\clubsuit$||
 |\cnums|$\cnums$||
@@ -294,7 +302,7 @@ table td {
 |\ddots|$\ddots$||
 |\DeclareMathOperator|<span style="color:firebrick;">Not supported</span>||
 |\def|$\def\foo{x^2} \foo + \foo$|`\def\foo{x^2} \foo + \foo`|
-|\definecolor|<span style="color:firebrick;">Not supported</span>|[Issue #750](https://github.com/Khan/KaTeX/issues/750)|
+|\definecolor|<span style="color:firebrick;">Not supported</span>|[Issue #750](https://github.com/KaTeX/KaTeX/issues/750)|
 |\deg|$\deg$||
 |\degree|$\degree$||
 |\delta|$\delta$||
@@ -333,13 +341,17 @@ table td {
 |\downdownarrows|$\downdownarrows$||
 |\downharpoonleft|$\downharpoonleft$||
 |\downharpoonright|$\downharpoonright$||
+|{drcases}|$\begin{drcases}a&\text{if }b\\c&\text{if }d\end{drcases}$|`\begin{drcases}`<br>&nbsp;&nbsp;&nbsp;`a &\text{if } b  \\`<br>&nbsp;&nbsp;&nbsp;`c &\text{if } d`<br>`\end{drcases}`|
 
 ## E
 
 |Symbol/Function |  Rendered   | Source or Comment|
 |:---------------|:------------|:-----------------|
+|\edef|$\def\foo{a}\edef\bar{\foo}\def\foo{}\bar$|`\def\foo{a}\edef\bar{\foo}\def\foo{}\bar`|
 |\ell|$\ell$||
-|\else|<span style="color:firebrick;">Not supported</span>|[Issue #1003](https://github.com/Khan/KaTeX/issues/1003)|
+|\else|<span style="color:firebrick;">Not supported</span>|[Issue #1003](https://github.com/KaTeX/KaTeX/issues/1003)|
+|\em|<span style="color:firebrick;">Not supported</span>||
+|\emph|<span style="color:firebrick;">Not supported</span>||
 |\empty|$\empty$||
 |\emptyset|$\emptyset$||
 |\enclose|<span style="color:firebrick;">Not supported</span>|Non standard
@@ -353,11 +365,11 @@ table td {
 |\eqcirc|$\eqcirc$||
 |\Eqcolon|$\Eqcolon$||
 |\eqcolon|$\eqcolon$||
-|{equation}|<span style="color:firebrick;">Not supported</span>|[Issue #445](https://github.com/Khan/KaTeX/issues/445)|
+|{equation}|<span style="color:firebrick;">Not supported</span>|[Issue #445](https://github.com/KaTeX/KaTeX/issues/445)|
 |{eqnarray}|<span style="color:firebrick;">Not supported</span>||
 |\Eqqcolon|$\Eqqcolon$||
 |\eqqcolon|$\eqqcolon$||
-|\eqref|<span style="color:firebrick;">Not supported</span>|[Issue #350](https://github.com/Khan/KaTeX/issues/350)|
+|\eqref|<span style="color:firebrick;">Not supported</span>|[Issue #350](https://github.com/KaTeX/KaTeX/issues/350)|
 |\eqsim|$\eqsim$||
 |\eqslantgtr|$\eqslantgtr$||
 |\eqslantless|$\eqslantless$||
@@ -369,6 +381,7 @@ table td {
 |\exist|$\exist$||
 |\exists|$\exists$||
 |\exp|$\exp$||
+|\expandafter|||
 
 ## F
 
@@ -377,7 +390,7 @@ table td {
 |\fallingdotseq|$\fallingdotseq$||
 |\fbox|$\fbox{Hi there!}$|`\fbox{Hi there!}`|
 |\fcolorbox|$\fcolorbox{red}{aqua}{A}$|`\fcolorbox{red}{aqua}{A}`|
-|\fi|<span style="color:firebrick;">Not supported</span>|[Issue #1003](https://github.com/Khan/KaTeX/issues/1003)|
+|\fi|<span style="color:firebrick;">Not supported</span>|[Issue #1003](https://github.com/KaTeX/KaTeX/issues/1003)|
 |\Finv|$\Finv$||
 |\flat|$\flat$||
 |\footnotesize|$\footnotesize footnotesize$|`\footnotesize footnotesize`|
@@ -385,6 +398,7 @@ table td {
 |\frac|$\frac a b$|`\frac a b`|
 |\frak|$\frak{AaBb}$|`\frak{AaBb}`|
 |\frown|$\frown$||
+|\futurelet|||
 
 ## G
 
@@ -440,16 +454,20 @@ table td {
 |\hearts|$\hearts$||
 |\heartsuit|$\heartsuit$||
 |\hfil|<span style="color:firebrick;">Not supported</span>||
-|\hfill|<span style="color:firebrick;">Not supported</span>|Issues [#164](https://github.com/Khan/KaTeX/issues/164) & [#269](https://github.com/Khan/KaTeX/issues/269)|
+|\hfill|<span style="color:firebrick;">Not supported</span>|Issues [#164](https://github.com/KaTeX/KaTeX/issues/164) & [#269](https://github.com/KaTeX/KaTeX/issues/269)|
 |\hline|$\begin{matrix}a&b\\ \hline c &d\end{matrix}$|`\begin{matrix}`<br>&nbsp;&nbsp;&nbsp;`a & b \\ \hline`<br>&nbsp;&nbsp;&nbsp;`c & d`<br>`\end{matrix}`|
 |\hom|$\hom$||
 |\hookleftarrow|$\hookleftarrow$||
 |\hookrightarrow|$\hookrightarrow$||
 |\hphantom|$a\hphantom{bc}d$|`a\hphantom{bc}d`|
-|\href|$\href{https://katex.org/}{\KaTeX}$|`\href{https://katex.org/}{\KaTeX}`|
+|\href|$\href{https://katex.org/}{\KaTeX}$|`\href{https://katex.org/}{\KaTeX}` Requires `trust` [option](options.md)|
 |\hskip|$w\hskip1em i\hskip2em d$|`w\hskip1em i\hskip2em d`|
 |\hslash|$\hslash$||
 |\hspace|$s\hspace7ex k$|`s\hspace7ex k`|
+|\htmlClass|$\htmlClass{foo}{x}$|`\htmlClass{foo}{x}` Must enable `trust` and disable `strict` [option](options.md)|
+|\htmlData|$\htmlData{foo=a, bar=b}{x}$|`\htmlData{foo=a, bar=b}{x}` Must enable `trust` and disable `strict` [option](options.md)|
+|\htmlId|$\htmlId{bar}{x}$|`\htmlId{bar}{x}` Must enable `trust` and disable `strict` [option](options.md)|
+|\htmlStyle|$\htmlStyle{color: red;}{x}$|`\htmlStyle{color: red;}{x}` Must enable `trust` and disable `strict` [option](options.md)|
 |\huge|$\huge huge$|`\huge huge`|
 |\Huge|$\Huge Huge$|`\Huge Huge`|
 
@@ -459,11 +477,11 @@ table td {
 |:---------------|:------------|:-----------------|
 |\i|$\text{\i}$|`\text{\i}`|
 |\idotsint|<span style="color:firebrick;">Not supported</span>||
-|\iddots|<span style="color:firebrick;">Not supported</span>|[Issue #1223](https://github.com/Khan/KaTeX/issues/1223)|
-|\if|<span style="color:firebrick;">Not supported</span>|[Issue #1003](https://github.com/Khan/KaTeX/issues/1003)|
+|\iddots|<span style="color:firebrick;">Not supported</span>|[Issue #1223](https://github.com/KaTeX/KaTeX/issues/1223)|
+|\if|<span style="color:firebrick;">Not supported</span>|[Issue #1003](https://github.com/KaTeX/KaTeX/issues/1003)|
 |\iff|$A\iff B$|`A\iff B`|
-|\ifmode|<span style="color:firebrick;">Not supported</span>|[Issue #1003](https://github.com/Khan/KaTeX/issues/1003)|
-|\ifx|<span style="color:firebrick;">Not supported</span>|[Issue #1003](https://github.com/Khan/KaTeX/issues/1003)|
+|\ifmode|<span style="color:firebrick;">Not supported</span>|[Issue #1003](https://github.com/KaTeX/KaTeX/issues/1003)|
+|\ifx|<span style="color:firebrick;">Not supported</span>|[Issue #1003](https://github.com/KaTeX/KaTeX/issues/1003)|
 |\iiiint|<span style="color:firebrick;">Not supported</span>||
 |\iiint|$\iiint$||
 |\iint|$\iint$||
@@ -473,7 +491,7 @@ table td {
 |\impliedby|$P\impliedby Q$|`P\impliedby Q`|
 |\implies|$P\implies Q$|`P\implies Q`|
 |\in|$\in$||
-|\includegraphics|<span style="color:firebrick;">Not supported</span>|[Issue #898](https://github.com/Khan/KaTeX/issues/898)|
+|\includegraphics|$\includegraphics[height=0.8em, totalheight=0.9em, width=0.9em, alt=KA logo]{https://cdn.kastatic.org/images/apple-touch-icon-57x57-precomposed.new.png}$|`\includegraphics[height=0.8em, totalheight=0.9em, width=0.9em, alt=KA logo]{https://cdn.kastatic.org/images/apple-touch-icon-57x57-precomposed.new.png}` Requires `trust` [option](options.md)
 |\inf|$\inf$||
 |\infin|$\infin$||
 |\infty|$\infty$||
@@ -485,6 +503,7 @@ table td {
 |\iota|$\iota$||
 |\isin|$\isin$||
 |\it|${\it AaBb}$|`{\it AaBb}`|
+|\itshape|<span style="color:firebrick;">Not supported</span>||
 
 ## JK
 
@@ -498,6 +517,8 @@ table td {
 |\KaTeX|$\KaTeX$||
 |\ker|$\ker$||
 |\kern|$I\kern-2.5pt R$|`I\kern-2.5pt R`|
+|\Ket|$\left\|\psi\right\rangle$|`\Ket{\psi}`|
+|\ket|$\mathinner{\|{\psi}\rangle}$|`\ket{\psi}`|
 |\Koppa|<span style="color:firebrick;">Not supported</span>||
 |\koppa|<span style="color:firebrick;">Not supported</span>||
 
@@ -520,6 +541,7 @@ table td {
 |\Large|$\Large Large$|`\Large Large`|
 |\LARGE|$\LARGE LARGE$|`\LARGE LARGE`|
 |\LaTeX|$\LaTeX$||
+|\lBrace|$\lBrace$||
 |\lbrace|$\lbrace$||
 |\lbrack|$\lbrack$||
 |\lceil|$\lceil$||
@@ -552,7 +574,7 @@ table td {
 |\lesseqqgtr|$\lesseqqgtr$||
 |\lessgtr|$\lessgtr$||
 |\lesssim|$\lesssim$||
-|\let|<span style="color:firebrick;">Not supported</span>|[Issue #1413](https://github.com/Khan/KaTeX/issues/1413)|
+|\let|||
 |\lfloor|$\lfloor$||
 |\lg|$\lg$||
 |\lgroup|$\lgroup$||
@@ -563,6 +585,7 @@ table td {
 |\limsup|$\limsup$||
 |\ll|$\ll$||
 |\llap|${=}\llap{/\,}$|`{=}\llap{/\,}`|
+|\llbracket|$\llbracket$||
 |\llcorner|$\llcorner$||
 |\Lleftarrow|$\Lleftarrow$||
 |\lll|$\lll$||
@@ -575,6 +598,7 @@ table td {
 |\lnot|$\lnot$||
 |\lnsim|$\lnsim$||
 |\log|$\log$||
+|\long|||
 |\Longleftarrow|$\Longleftarrow$||
 |\longleftarrow|$\longleftarrow$||
 |\Longleftrightarrow|$\Longleftrightarrow$||
@@ -587,6 +611,7 @@ table td {
 |\lor|$\lor$||
 |\lower|<span style="color:firebrick;">Not supported</span>||
 |\lozenge|$\lozenge$||
+|\lparen|$\lparen$||
 |\Lrarr|$\Lrarr$||
 |\lrArr|$\lrArr$||
 |\lrarr|$\lrarr$||
@@ -617,6 +642,7 @@ table td {
 |\mathinner|$ab\mathinner{\text{inside}}cd$|`ab\mathinner{\text{inside}}cd`|
 |\mathit|$\mathit{AaBb}$|`\mathit{AaBb}`<br>KaTeX supports A-Za-z|
 |\mathllap|${=}\mathllap{/\,}$|`{=}\mathllap{/\,}`|
+|\mathnormal|$\mathnormal{AaBb}$|`\mathnormal{AaBb}`<br>KaTeX supports A-Za-z|
 |\mathop|$\mathop{\star}_a^b$|`\mathop{\star}_a^b`|
 |\mathopen|$a + \mathopen\lt b) + c$|`a + \mathopen\lt b) + c`|
 |\mathord|$1\mathord{,}234{,}567$|`1\mathord{,}234{,}567`|
@@ -635,6 +661,8 @@ table td {
 |{matrix}|$\begin{matrix}a&b\\c&d\end{matrix}$|`\begin{matrix}`<br>&nbsp;&nbsp;&nbsp;`a & b \\`<br>&nbsp;&nbsp;&nbsp;`c & d`<br>`\end{matrix}`|
 |\max|$\max$||
 |\mbox|<span style="color:firebrick;">Not supported</span>||
+|\md|<span style="color:firebrick;">Not supported</span>||
+|\mdseries|<span style="color:firebrick;">Not supported</span>||
 |\measuredangle|$\measuredangle$||
 |\medspace|$a\medspace b$|`a\medspace b`|
 |\mho|$\mho$||
@@ -653,7 +681,7 @@ table td {
 |\mspace|<span style="color:firebrick;">Not supported</span>||
 |\Mu|$\Mu$||
 |\mu|$\mu$||
-|\multicolumn|<span style="color:firebrick;">Not supported</span>|[Issue #269](https://github.com/Khan/KaTeX/issues/269)|
+|\multicolumn|<span style="color:firebrick;">Not supported</span>|[Issue #269](https://github.com/KaTeX/KaTeX/issues/269)|
 |{multiline}|<span style="color:firebrick;">Not supported</span>||
 |\multimap|$\multimap$||
 
@@ -674,7 +702,7 @@ table td {
 |\negthinspace|$a\negthinspace b$|`a\negthinspace b`|
 |\neq|$\neq$||
 |\newcommand|$\newcommand\chk{\checkmark} \chk$|`\newcommand\chk{\checkmark} \chk`|
-|\newenvironment|<span style="color:firebrick;">Not supported</span>|[Issue #37](https://github.com/Khan/KaTeX/issues/37)|
+|\newenvironment|<span style="color:firebrick;">Not supported</span>|[Issue #37](https://github.com/KaTeX/KaTeX/issues/37)|
 |\Newextarrow|<span style="color:firebrick;">Not supported</span>||
 |\newline|$a\newline b$|`a\newline b`|
 |\nexists|$\nexists$||
@@ -694,7 +722,9 @@ table td {
 |\nmid|$\nmid$||
 |\nobreak|||
 |\nobreakspace|$a\nobreakspace b$|`a\nobreakspace b`|
+|\noexpand|||
 |\nolimits|$\lim\nolimits_x$|`\lim\nolimits_x`|
+|\normalfont|<span style="color:firebrick;">Not supported</span>||
 |\normalsize|$\normalsize normalsize$|`\normalsize normalsize`|
 |\not|$\not =$|`\not =`|
 |\notag|<span style="color:firebrick;">Not supported</span>||
@@ -746,7 +776,7 @@ table td {
 |\omicron|$\omicron$||
 |\ominus|$\ominus$||
 |\operatorname|$\operatorname{asin} x$|\operatorname{asin} x|
-|\operatorname\*|<span style="color:firebrick;">Not supported</span>|[Issue #1242](https://github.com/Khan/KaTeX/issues/1242)|
+|\operatorname\*|$\operatorname{asin}\limits_y x$|`\operatorname{asin}\limits_y x`|
 |\oplus|$\oplus$||
 |\or|<span style="color:firebrick;">Not supported</span>||
 |\oslash|$\oslash$||
@@ -786,6 +816,7 @@ table td {
 |\pi|$\pi$||
 |{picture}|<span style="color:firebrick;">Not supported</span>||
 |\pitchfork|$\pitchfork$||
+|\plim|$\plim$||
 |\plusmn|$\plusmn$||
 |\pm|$\pm$||
 |\pmatrix|<span style="color:firebrick;">Not supported</span>|See `{pmatrix}`|
@@ -810,7 +841,7 @@ table td {
 |\providecommand|$\providecommand\greet{\text{Hello}} \greet$|`\providecommand\greet{\text{Hello}} \greet`|
 |\psi|$\psi$||
 |\Psi|$\Psi$||
-|\pu||A PR is pending|
+|\pu |${123~\mathchoice{\textstyle\frac{\mathrm{kJ}}{\mathrm{mol}}}{\frac{\mathrm{kJ}}{\mathrm{mol}}}{\frac{\mathrm{kJ}}{\mathrm{mol}}}{\frac{\mathrm{kJ}}{\mathrm{mol}}}}$|`\pu{123 kJ//mol}` Requires an [extension](https://github.com/KaTeX/KaTeX/tree/master/contrib/mhchem/)|
 
 ## QR
 
@@ -828,14 +859,16 @@ table td {
 |\Rarr|$\Rarr$||
 |\rArr|$\rArr$||
 |\rarr|$\rarr$||
+|\rBrace|$\rBrace$||
 |\rbrace|$\rbrace$||
 |\rbrack|$\rbrack$||
+|{rcases}|$\begin{rcases}a&\text{if }b\\c&\text{if }d\end{rcases}$|`\begin{rcases}`<br>&nbsp;&nbsp;&nbsp;`a &\text{if } b  \\`<br>&nbsp;&nbsp;&nbsp;`c &\text{if } d`<br>`\end{rcases}`|
 |\rceil|$\rceil$||
 |\Re|$\Re$||
 |\real|$\real$||
 |\Reals|$\Reals$||
 |\reals|$\reals$||
-|\ref|<span style="color:firebrick;">Not supported</span>|[Issue #350](https://github.com/Khan/KaTeX/issues/350)|
+|\ref|<span style="color:firebrick;">Not supported</span>|[Issue #350](https://github.com/KaTeX/KaTeX/issues/350)|
 |\relax|||
 |\renewcommand|$\def\hail{Hi!}\renewcommand\hail{\text{Ahoy!}} \hail$|`\def\hail{Hi!}`<br>`\renewcommand\hail{\text{Ahoy!}}`<br>`\hail`|
 |\renewenvironment|<span style="color:firebrick;">Not supported</span>||
@@ -862,8 +895,10 @@ table td {
 |\rm|$\rm AaBb12$|`\rm AaBb12`|
 |\rmoustache|$\rmoustache$||
 |\root|<span style="color:firebrick;">Not supported</span>||
-|\rotatebox|<span style="color:firebrick;">Not supported</span>|[Issue #681](https://github.com/Khan/KaTeX/issues/681)|
+|\rotatebox|<span style="color:firebrick;">Not supported</span>|[Issue #681](https://github.com/KaTeX/KaTeX/issues/681)|
+|\rparen|$\rparen$||
 |\rq|$\rq$||
+|\rrbracket|$\rrbracket$||
 |\Rrightarrow|$\Rrightarrow$||
 |\Rsh|$\Rsh$||
 |\rtimes|$\rtimes$||
@@ -879,6 +914,7 @@ table td {
 |\S|$\text{\S}$|`\text{\S}`|
 |\Sampi|<span style="color:firebrick;">Not supported</span>||
 |\sampi|<span style="color:firebrick;">Not supported</span>||
+|\sc|<span style="color:firebrick;">Not supported</span>|[Issue #471](https://github.com/KaTeX/KaTeX/issues/471)|
 |\scalebox|<span style="color:firebrick;">Not supported</span>||
 |\scr|<span style="color:firebrick;">Not supported</span>|See `\mathscr`|
 |\scriptscriptstyle|$\scriptscriptstyle \frac cd$|`\scriptscriptstyle \frac cd`|
@@ -888,7 +924,7 @@ table td {
 |\searrow|$\searrow$||
 |\sec|$\sec$||
 |\sect|$\text{\sect}$|`\text{\sect}`|
-|\setlength|<span style="color:firebrick;">Not supported</span>|[Issue #687](https://github.com/Khan/KaTeX/issues/687)|
+|\setlength|<span style="color:firebrick;">Not supported</span>|[Issue #687](https://github.com/KaTeX/KaTeX/issues/687)|
 |\setminus|$\setminus$||
 |\sf|$\sf AaBb123$|`\sf AaBb123`|
 |\sharp|$\sharp$||
@@ -907,10 +943,11 @@ table td {
 |\sh|$\sh$||
 |\skew|<span style="color:firebrick;">Not supported</span>||
 |\skip|<span style="color:firebrick;">Not supported</span>||
+|\sl|<span style="color:firebrick;">Not supported</span>||
 |\small|$\small small$|`\small small`|
 |\smallfrown|$\smallfrown$||
 |\smallint|$\smallint$||
-|{smallmatrix}|<span style="color:firebrick;">Not supported</span>||
+|{smallmatrix}|$\begin{smallmatrix} a & b \\ c & d \end{smallmatrix}$|`\begin{smallmatrix}`<br>&nbsp;&nbsp;&nbsp;`a & b \\`<br>&nbsp;&nbsp;&nbsp;`c & d`<br>`\end{smallmatrix}`|
 |\smallsetminus|$\smallsetminus$||
 |\smallsmile|$\smallsmile$||
 |\smash|$\left(x^{\smash{2}}\right)$|`\left(x^{\smash{2}}\right)`|
@@ -918,11 +955,11 @@ table td {
 |\smiley|<span style="color:firebrick;">Not supported</span>||
 |\sout|$\sout{abc}$|`\sout{abc}`|
 |\Space|<span style="color:firebrick;">Not supported</span>|see `\space`
-|\space|$a\space{b}$|`a\space{b}`|
+|\space|$a\space b$|`a\space b`|
 |\spades|$\spades$||
 |\spadesuit|$\spadesuit$||
 |\sphericalangle|$\sphericalangle$||
-|{split}|<span style="color:firebrick;">Not supported</span>|[Issue #1345](https://github.com/Khan/KaTeX/issues/1345)|
+|{split}|<span style="color:firebrick;">Not supported</span>|[Issue #1345](https://github.com/KaTeX/KaTeX/issues/1345)|
 |\sqcap|$\sqcap$||
 |\sqcup|$\sqcup$||
 |\square|$\square$||
@@ -947,7 +984,7 @@ table td {
 |\subseteqq|$\subseteqq$||
 |\subsetneq|$\subsetneq$||
 |\subsetneqq|$\subsetneqq$||
-|\substack|<span style="color:firebrick;">Not supported</span>||
+|\substack|$$\sum_{\substack{0<i<m\\0<j<n}}$$|`\sum_{\substack{0<i<m\\0<j<n}}`|
 |\succ|$\succ$||
 |\succapprox|$\succapprox$||
 |\succcurlyeq|$\succcurlyeq$||
@@ -982,6 +1019,8 @@ table td {
 |\TeX|$\TeX$||
 |\text|$\text{ yes }\&\text{ no }$|`\text{ yes }\&\text{ no }`|
 |\textasciitilde|$\text{\textasciitilde}$|`\text{\textasciitilde}`|
+|\textasciicircum|$\text{\textasciicircum}$|`\text{\textasciicircum}`|
+|\textbackslash|$\text{\textbackslash}$|`\text{\textbackslash}`|
 |\textbar|$\text{\textbar}$|`\text{\textbar}`|
 |\textbardbl|$\text{\textbardbl}$|`\text{\textbardbl}`|
 |\textbf|$\textbf{AaBb123}$|`\textbf{AaBb123}`|
@@ -999,6 +1038,7 @@ table td {
 |\textgreater|$\text{\textgreater}$|`\text{\textgreater}`|
 |\textit|$\textit{AaBb}$|`\textit{AaBb}`|
 |\textless|$\text{\textless}$|`\text{\textless}`|
+|\textmd|$\textmd{AaBb123}$|`\textmd{AaBb123}`|
 |\textnormal|$\textnormal{AB}$|`\textnormal{AB}`|
 |\textquotedblleft|$\text{\textquotedblleft}$|`\text{\textquotedblleft}`|
 |\textquotedblright|$\text{\textquotedblright}$|`\text{\textquotedblright}`|
@@ -1006,13 +1046,15 @@ table td {
 |\textquoteright|$\text{\textquoteright}$|`\text{\textquoteright}`|
 |\textregistered|$\text{\textregistered}$|`\text{\textregistered}`|
 |\textrm|$\textrm{AaBb123}$|`\textrm{AaBb123}`|
-|\textsc|<span style="color:firebrick;">Not supported</span>|[Issue #471](https://github.com/Khan/KaTeX/issues/471)|
+|\textsc|<span style="color:firebrick;">Not supported</span>|[Issue #471](https://github.com/KaTeX/KaTeX/issues/471)|
 |\textsf|$\textsf{AaBb123}$|`\textsf{AaBb123}`|
+|\textsl|<span style="color:firebrick;">Not supported</span>||
 |\textsterling|$\text{\textsterling}$|`\text{\textsterling}`|
 |\textstyle|$\textstyle\sum_0^n$|`\textstyle\sum_0^n`|
 |\texttip|<span style="color:firebrick;">Not supported</span>||
 |\texttt|$\texttt{AaBb123}$|`\texttt{AaBb123}`|
 |\textunderscore|$\text{\textunderscore}$|`\text{\textunderscore}`|
+|\textup|$\textup{AaBb123}$|`\textup{AaBb123}`|
 |\textvisiblespace|<span style="color:firebrick;">Not supported</span>||
 |\tfrac|$\tfrac ab$|`\tfrac ab`|
 |\tg|$\tg$||
@@ -1066,6 +1108,7 @@ table td {
 |\unicode|<span style="color:firebrick;">Not supported</span>||
 |\unlhd|$\unlhd$||
 |\unrhd|$\unrhd$||
+|\up|<span style="color:firebrick;">Not supported</span>||
 |\Uparrow|$\Uparrow$||
 |\uparrow|$\uparrow$||
 |\Updownarrow|$\Updownarrow$||
@@ -1074,11 +1117,12 @@ table td {
 |\upharpoonright|$\upharpoonright$||
 |\uplus|$\uplus$||
 |\uproot|<span style="color:firebrick;">Not supported</span>||
+|\upshape|<span style="color:firebrick;">Not supported</span>||
 |\Upsilon|$\Upsilon$||
 |\upsilon|$\upsilon$||
 |\upuparrows|$\upuparrows$||
 |\urcorner|$\urcorner$||
-|\url|$\footnotesize\url{https://katex.org/}$|`\url{https://katex.org/}`|
+|\url|$\footnotesize\url{https://katex.org/}$|`\url{https://katex.org/}` Requires `trust` [option](options.md)|
 |\utilde|$\utilde{AB}$|`\utilde{AB}`|
 
 ## V
@@ -1134,7 +1178,7 @@ table td {
 |\vert|$\vert$||
 |\vfil|<span style="color:firebrick;">Not supported</span>||
 |\vfill|<span style="color:firebrick;">Not supported</span>||
-|\vline|<span style="color:firebrick;">Not supported</span>|[Issue #269](https://github.com/Khan/KaTeX/issues/269)|
+|\vline|<span style="color:firebrick;">Not supported</span>|[Issue #269](https://github.com/KaTeX/KaTeX/issues/269)|
 |{Vmatrix}|$\begin{Vmatrix}a&b\\c&d\end{Vmatrix}$|`\begin{Vmatrix}`<br>&nbsp;&nbsp;&nbsp;`a & b \\`<br>&nbsp;&nbsp;&nbsp;`c & d`<br>`\end{Vmatrix}`|
 |{vmatrix}|$\begin{vmatrix}a&b\\c&d\end{vmatrix}$|`\begin{vmatrix}`<br>&nbsp;&nbsp;&nbsp;`a & b \\`<br>&nbsp;&nbsp;&nbsp;`c & d`<br>`\end{vmatrix}`|
 |\vphantom|$\overline{\vphantom{M}a}$|`\overline{\vphantom{M}a}`|
@@ -1148,7 +1192,7 @@ table td {
 |\weierp|$\weierp$||
 |\widecheck|$\widecheck{AB}$|`\widecheck{AB}`|
 |\widehat|$\widehat{AB}$|`\widehat{AB}`|
-|\wideparen|<span style="color:firebrick;">Not supported</span>|[Issue #560](https://github.com/Khan/KaTeX/issues/560)|
+|\wideparen|<span style="color:firebrick;">Not supported</span>|[Issue #560](https://github.com/KaTeX/KaTeX/issues/560)|
 |\widetilde|$\widetilde{AB}$|`\widetilde{AB}`|
 |\wp|$\wp$||
 |\wr|$\wr$||
@@ -1158,6 +1202,7 @@ table td {
 |Symbol/Function |  Rendered   | Source or Comment|
 |:---------------|:------------|:-----------------|
 |\xcancel|$\xcancel{ABC}$|`\xcancel{ABC}`|
+|\xdef|$\def\foo{a}\xdef\bar{\foo}\def\foo{}\bar$|`\def\foo{a}\xdef\bar{\foo}\def\foo{}\bar`|
 |\Xi|$\Xi$||
 |\xi|$\xi$||
 |\xhookleftarrow|$\xhookleftarrow{abc}$|`\xhookleftarrow{abc}`|

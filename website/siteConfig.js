@@ -12,7 +12,7 @@
 const users = [
     {
         caption: 'Khan Academy',
-        image: 'https://avatars0.githubusercontent.com/u/15455',
+        image: '/img/khan-academy.png',
         infoLink: 'https://www.khanacademy.org/',
     },
     {
@@ -22,7 +22,7 @@ const users = [
     },
     {
         caption: 'CoCalc',
-        image: 'https://cdn.rawgit.com/sagemathinc/cocalc/baa4fc57/src/webapp-lib/cocalc-logo.svg',
+        image: '/img/cocalc_logo.svg',
         infoLink: 'https://cocalc.com/',
     },
     {
@@ -67,7 +67,7 @@ const users = [
     },
     {
         caption: 'Idyll',
-        image: 'https://cdn.rawgit.com/idyll-lang/idyll-lang.github.io/src/images/logo.svg',
+        image: 'https://idyll-lang.org/static/images/logo.svg',
         infoLink: 'https://idyll-lang.org/',
     },
     {
@@ -81,9 +81,19 @@ const users = [
         infoLink: 'https://www.messenger.com/',
     },
     {
+        caption: 'namu.wiki',
+        image: '/img/namuwiki_logo.png',
+        infoLink: 'https://namu.wiki/',
+    },
+    {
+        caption: 'Notable',
+        image: 'https://notable.md/static/images/logo_app.png',
+        infoLink: 'https://notable.md',
+    },
+    {
         caption: 'Observable',
-        image: 'https://pbs.twimg.com/profile_images/970805785503477760/HfTZJiZo_400x400.jpg',
-        infoLink: 'https://beta.observablehq.com/',
+        image: 'https://avatars0.githubusercontent.com/u/30080011',
+        infoLink: 'https://observablehq.com/',
     },
     {
         caption: 'Quill',
@@ -92,7 +102,7 @@ const users = [
     },
     {
         caption: 'Rocket.Chat',
-        image: 'https://cdn.rawgit.com/RocketChat/Rocket.Chat.Artwork/1f7b68b78878fcef47f32aa0965930a1c12cd0b4/Logos/icon.svg',
+        image: '/img/rocketchat_logo.svg',
         infoLink: 'https://rocket.chat/',
     },
     {
@@ -107,12 +117,17 @@ const users = [
     },
     {
         caption: 'StackEdit',
-        image: 'https://cdn.rawgit.com/benweet/stackedit/0632445a/src/assets/iconStackedit.svg',
+        image: '/img/stackedit_logo.svg',
         infoLink: 'https://stackedit.io/',
     },
     {
+        caption: 'Tutti Quanti Shelf',
+        image: 'https://raw.githubusercontent.com/tonton-pixel/tutti-quanti-shelf/master/icons/icon.png',
+        infoLink: 'https://github.com/tonton-pixel/tutti-quanti-shelf/',
+    },
+    {
         caption: 'Vade Mecum Shelf',
-        image: 'https://cdn.rawgit.com/tonton-pixel/vade-mecum-shelf/43013aec/icons/icon.png',
+        image: '/img/vade_mecum_shelf_logo.png',
         infoLink: 'https://github.com/tonton-pixel/vade-mecum-shelf/',
     },
 ];
@@ -125,13 +140,13 @@ const siteConfig = {
 
     // Used for publishing and more
     projectName: 'KaTeX',
-    organizationName: 'Khan',
+    organizationName: 'KaTeX',
 
     headerLinks: [
         {href: '/#demo', label: 'Try'},
         {doc: 'node', label: 'Docs'},
         {page: 'users', label: 'Users'},
-        {href: 'https://github.com/Khan/KaTeX', label: 'GitHub'},
+        {href: 'https://github.com/KaTeX/KaTeX', label: 'GitHub'},
         {search: true},
     ],
     users,
@@ -153,7 +168,7 @@ const siteConfig = {
     copyright:
     'Copyright © ' +
     new Date().getFullYear() +
-    ' Khan Academy',
+    ' Khan Academy and other contributors',
 
     highlight: {
         // Highlight.js theme to use for syntax highlighting in code blocks
@@ -187,7 +202,7 @@ const siteConfig = {
     ogImage: 'img/og_logo.png',
     twitterImage: 'img/og_logo.png',
 
-    repoUrl: 'https://github.com/Khan/KaTeX',
+    repoUrl: 'https://github.com/KaTeX/KaTeX',
 };
 
 module.exports = siteConfig;

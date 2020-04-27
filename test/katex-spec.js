@@ -12,7 +12,7 @@ import Options from "../src/Options";
 import Settings from "../src/Settings";
 import Style from "../src/Style";
 import {
-    strictSettings, nonstrictSettings, r,
+    strictSettings, nonstrictSettings, trustSettings, r,
     getBuilt, getParsed, stripPositions,
 } from "./helpers";
 
@@ -329,6 +329,33 @@ describe("A group parser", function() {
     });
 });
 
+describe("A \\begingroup...\\endgroup parser", function() {
+    it("should not fail", function() {
+        expect`\begingroup xy \endgroup`.toParse();
+    });
+
+    it("should fail when it is mismatched", function() {
+        expect`\begingroup xy`.not.toParse();
+        expect`\begingroup xy }`.not.toParse();
+    });
+
+    it("should produce a semi-simple group", function() {
+        const parse = getParsed`\begingroup xy \endgroup`;
+
+        expect(parse).toHaveLength(1);
+
+        const ord = parse[0];
+
+        expect(ord.type).toMatch("ord");
+        expect(ord.body).toBeTruthy();
+        expect(ord.semisimple).toBeTruthy();
+    });
+
+    it("should not affect spacing in math mode", function() {
+        expect`\begingroup x+ \endgroup y`.toBuildLike`x+y`;
+    });
+});
+
 describe("An implicit group parser", function() {
     it("should not fail", function() {
         expect`\Large x`.toParse();
@@ -555,10 +582,10 @@ describe("An over/brace/brack parser", function() {
         expect(numer.body).toHaveLength(4);
     });
 
-    it("should create a demonimator from the atoms after \\over", function() {
+    it("should create a denominator from the atoms after \\over", function() {
         const parse = getParsed(complexOver)[0];
 
-        const denom = parse.numer;
+        const denom = parse.denom;
         expect(denom.body).toHaveLength(4);
     });
 
@@ -619,6 +646,8 @@ describe("A genfrac builder", function() {
         expect("\\cfrac{x}{y}").toBuild();
         expect("\\genfrac ( ] {0.06em}{0}{a}{b+c}").toBuild();
         expect("\\genfrac ( ] {0.8pt}{}{a}{b+c}").toBuild();
+        expect("\\genfrac {} {} {0.8pt}{}{a}{b+c}").toBuild();
+        expect("\\genfrac [ {} {0.8pt}{}{a}{b+c}").toBuild();
     });
 });
 
@@ -752,7 +781,7 @@ describe("A text parser", function() {
     });
 
     it("should parse spacing functions", function() {
-        expect`a b\, \; \! \: ~ \thinspace \medspace \quad \ `.toBuild();
+        expect`a b\, \; \! \: \> ~ \thinspace \medspace \quad \ `.toBuild();
         expect`\enspace \thickspace \qquad \space \nobreakspace`.toBuild();
     });
 
@@ -1198,6 +1227,7 @@ describe("left/right builder", () => {
     const cases = [
         [r`\left\langle \right\rangle`, r`\left< \right>`],
         [r`\left\langle \right\rangle`, '\\left\u27e8 \\right\u27e9'],
+        [r`\left\lparen \right\rparen`, r`\left( \right)`],
     ];
 
     for (const [actual, expected] of cases) {
@@ -1483,13 +1513,15 @@ describe("A style change parser", function() {
 });
 
 describe("A font parser", function() {
-    it("should parse \\mathrm, \\mathbb, and \\mathit", function() {
+    it("should parse \\mathrm, \\mathbb, \\mathit, and \\mathnormal", function() {
         expect`\mathrm x`.toParse();
         expect`\mathbb x`.toParse();
         expect`\mathit x`.toParse();
+        expect`\mathnormal x`.toParse();
         expect`\mathrm {x + 1}`.toParse();
         expect`\mathbb {x + 1}`.toParse();
         expect`\mathit {x + 1}`.toParse();
+        expect`\mathnormal {x + 1}`.toParse();
     });
 
     it("should parse \\mathcal and \\mathfrak", function() {
@@ -1509,6 +1541,10 @@ describe("A font parser", function() {
         const mathitParse = getParsed`\mathit x`[0];
         expect(mathitParse.font).toEqual("mathit");
         expect(mathitParse.type).toEqual("font");
+
+        const mathnormalParse = getParsed`\mathnormal x`[0];
+        expect(mathnormalParse.font).toEqual("mathnormal");
+        expect(mathnormalParse.type).toEqual("font");
 
         const mathcalParse = getParsed`\mathcal C`[0];
         expect(mathcalParse.font).toEqual("mathcal");
@@ -1565,6 +1601,15 @@ describe("A font parser", function() {
         const built = getBuilt`a\boldsymbol{}b\boldsymbol{=}c\boldsymbol{+}d\boldsymbol{++}e\boldsymbol{xyz}f`;
         expect(built).toMatchSnapshot();
     });
+
+    it("old-style fonts work like new-style fonts", () => {
+        expect`\rm xyz`.toParseLike`\mathrm{xyz}`;
+        expect`\sf xyz`.toParseLike`\mathsf{xyz}`;
+        expect`\tt xyz`.toParseLike`\mathtt{xyz}`;
+        expect`\bf xyz`.toParseLike`\mathbf{xyz}`;
+        expect`\it xyz`.toParseLike`\mathit{xyz}`;
+        expect`\cal xyz`.toParseLike`\mathcal{xyz}`;
+    });
 });
 
 describe("A \\pmb builder", function() {
@@ -1589,6 +1634,36 @@ describe("A comment parser", function() {
 
     it("should parse multiple lines of comments in a row", () => {
         expect("% comment 1\n% comment 2\n").toParse();
+    });
+
+    it("should parse comments between subscript and superscript", () => {
+        expect("x_3 %comment\n^2").toParseLike`x_3^2`;
+        expect("x^ %comment\n{2}").toParseLike`x^{2}`;
+        expect("x^ %comment\n\\frac{1}{2}").toParseLike`x^\frac{1}{2}`;
+    });
+
+    it("should parse comments in size and color groups", () => {
+        expect("\\kern{1 %kern\nem}").toParse();
+        expect("\\kern1 %kern\nem").toParse();
+        expect("\\color{#f00%red\n}").toParse();
+    });
+
+    it("should parse comments before an expression", () => {
+        expect("%comment\n{2}").toParseLike`{2}`;
+    });
+
+    it("should parse comments before and between \\hline", () => {
+        expect("\\begin{matrix}a&b\\\\ %hline\n" +
+            "\\hline %hline\n" +
+            "\\hline c&d\\end{matrix}").toParse();
+    });
+
+    it("should parse comments in the macro definition", () => {
+        expect("\\def\\foo{1 %}\n2}\n\\foo").toParseLike`12`;
+    });
+
+    it("should not expand nor ignore spaces after a command sequence in a comment", () => {
+        expect("\\def\\foo{1\n2}\nx %\\foo\n").toParseLike`x`;
     });
 
     it("should not parse a comment without newline in strict mode", () => {
@@ -1642,6 +1717,15 @@ describe("An HTML font tree-builder", function() {
         expect(markup).toContain("<span class=\"mord textit\">R</span>");
     });
 
+    it("should render \\textup{R} with the correct font", function() {
+        const markup1 = katex.renderToString(r`\textup{R}`);
+        expect(markup1).toContain("<span class=\"mord textup\">R</span>");
+        const markup2 = katex.renderToString(r`\textit{\textup{R}}`);
+        expect(markup2).toContain("<span class=\"mord textup\">R</span>");
+        const markup3 = katex.renderToString(r`\textup{\textit{R}}`);
+        expect(markup3).toContain("<span class=\"mord textit\">R</span>");
+    });
+
     it("should render \\text{R\\textit{S}T} with the correct fonts", function() {
         const markup = katex.renderToString(r`\text{R\textit{S}T}`);
         expect(markup).toContain("<span class=\"mord\">R</span>");
@@ -1652,6 +1736,15 @@ describe("An HTML font tree-builder", function() {
     it("should render \\textbf{R} with the correct font", function() {
         const markup = katex.renderToString(r`\textbf{R}`);
         expect(markup).toContain("<span class=\"mord textbf\">R</span>");
+    });
+
+    it("should render \\textmd{R} with the correct font", function() {
+        const markup1 = katex.renderToString(r`\textmd{R}`);
+        expect(markup1).toContain("<span class=\"mord textmd\">R</span>");
+        const markup2 = katex.renderToString(r`\textbf{\textmd{R}}`);
+        expect(markup2).toContain("<span class=\"mord textmd\">R</span>");
+        const markup3 = katex.renderToString(r`\textmd{\textbf{R}}`);
+        expect(markup3).toContain("<span class=\"mord textbf\">R</span>");
     });
 
     it("should render \\textsf{R} with the correct font", function() {
@@ -1749,11 +1842,11 @@ describe("A MathML font tree-builder", function() {
         const tree = getParsed(tex);
         const markup = buildMathML(tree, tex, defaultOptions).toMarkup();
         expect(markup).toContain("<mi mathvariant=\"double-struck\">A</mi>");
-        expect(markup).toContain("<mi>x</mi>");
-        expect(markup).toContain("<mn>2</mn>");
-        expect(markup).toContain("<mi>\u03c9</mi>");                        // \omega
-        expect(markup).toContain("<mi mathvariant=\"normal\">\u03A9</mi>"); // \Omega
-        expect(markup).toContain("<mi>\u0131</mi>");                        // \imath
+        expect(markup).toContain("<mi mathvariant=\"double-struck\">x</mi>");
+        expect(markup).toContain("<mn mathvariant=\"double-struck\">2</mn>");
+        expect(markup).toContain("<mi mathvariant=\"double-struck\">\u03c9</mi>");  // \omega
+        expect(markup).toContain("<mi mathvariant=\"double-struck\">\u03A9</mi>"); // \Omega
+        expect(markup).toContain("<mi mathvariant=\"double-struck\">\u0131</mi>");  // \imath
         expect(markup).toContain("<mo>+</mo>");
     });
 
@@ -1783,6 +1876,19 @@ describe("A MathML font tree-builder", function() {
         expect(markup).toContain("<mo>+</mo>");
     });
 
+    it("should render \\mathnormal{" + contents + "} with the correct mathvariants", function() {
+        const tex = `\\mathnormal{${contents}}`;
+        const tree = getParsed(tex);
+        const markup = buildMathML(tree, tex, defaultOptions).toMarkup();
+        expect(markup).toContain("<mi>A</mi>");
+        expect(markup).toContain("<mi>x</mi>");
+        expect(markup).toContain("<mn>2</mn>");
+        expect(markup).toContain("<mi>\u03c9</mi>");   // \omega
+        expect(markup).toContain("<mi mathvariant=\"normal\">\u03A9</mi>");   // \Omega
+        expect(markup).toContain("<mi>\u0131</mi>");   // \imath
+        expect(markup).toContain("<mo>+</mo>");
+    });
+
     it("should render \\mathbf{" + contents + "} with the correct mathvariants", function() {
         const tex = `\\mathbf{${contents}}`;
         const tree = getParsed(tex);
@@ -1790,9 +1896,9 @@ describe("A MathML font tree-builder", function() {
         expect(markup).toContain("<mi mathvariant=\"bold\">A</mi>");
         expect(markup).toContain("<mi mathvariant=\"bold\">x</mi>");
         expect(markup).toContain("<mn mathvariant=\"bold\">2</mn>");
-        expect(markup).toContain("<mi>\u03c9</mi>");                        // \omega
+        expect(markup).toContain("<mi mathvariant=\"bold\">\u03c9</mi>");   // \omega
         expect(markup).toContain("<mi mathvariant=\"bold\">\u03A9</mi>");   // \Omega
-        expect(markup).toContain("<mi>\u0131</mi>");                        // \imath
+        expect(markup).toContain("<mi mathvariant=\"bold\">\u0131</mi>");   // \imath
         expect(markup).toContain("<mo>+</mo>");
     });
 
@@ -1801,13 +1907,11 @@ describe("A MathML font tree-builder", function() {
         const tree = getParsed(tex);
         const markup = buildMathML(tree, tex, defaultOptions).toMarkup();
         expect(markup).toContain("<mi mathvariant=\"script\">A</mi>");
-        expect(markup).toContain("<mi>x</mi>");                             // script is caps only
+        expect(markup).toContain("<mi mathvariant=\"script\">x</mi>");
         expect(markup).toContain("<mn mathvariant=\"script\">2</mn>");
-        // MathJax marks everything below as "script" except \omega
-        // We don't have these glyphs in "caligraphic" and neither does MathJax
-        expect(markup).toContain("<mi>\u03c9</mi>");                        // \omega
-        expect(markup).toContain("<mi mathvariant=\"normal\">\u03A9</mi>"); // \Omega
-        expect(markup).toContain("<mi>\u0131</mi>");                        // \imath
+        expect(markup).toContain("<mi mathvariant=\"script\">\u03c9</mi>"); // \omega
+        expect(markup).toContain("<mi mathvariant=\"script\">\u03A9</mi>"); // \Omega
+        expect(markup).toContain("<mi mathvariant=\"script\">\u0131</mi>"); // \imath
         expect(markup).toContain("<mo>+</mo>");
     });
 
@@ -1818,11 +1922,9 @@ describe("A MathML font tree-builder", function() {
         expect(markup).toContain("<mi mathvariant=\"fraktur\">A</mi>");
         expect(markup).toContain("<mi mathvariant=\"fraktur\">x</mi>");
         expect(markup).toContain("<mn mathvariant=\"fraktur\">2</mn>");
-        // MathJax marks everything below as "fraktur" except \omega
-        // We don't have these glyphs in "fraktur" and neither does MathJax
-        expect(markup).toContain("<mi>\u03c9</mi>");                        // \omega
-        expect(markup).toContain("<mi mathvariant=\"normal\">\u03A9</mi>"); // \Omega
-        expect(markup).toContain("<mi>\u0131</mi>");                        // \imath
+        expect(markup).toContain("<mi mathvariant=\"fraktur\">\u03c9</mi>"); // \omega
+        expect(markup).toContain("<mi mathvariant=\"fraktur\">\u03A9</mi>"); // \Omega
+        expect(markup).toContain("<mi mathvariant=\"fraktur\">\u0131</mi>"); // \imath
         expect(markup).toContain("<mo>+</mo>");
     });
 
@@ -1831,13 +1933,11 @@ describe("A MathML font tree-builder", function() {
         const tree = getParsed(tex);
         const markup = buildMathML(tree, tex, defaultOptions).toMarkup();
         expect(markup).toContain("<mi mathvariant=\"script\">A</mi>");
-        // MathJax marks everything below as "script" except \omega
-        // We don't have these glyphs in "script" and neither does MathJax
-        expect(markup).toContain("<mi>x</mi>");
-        expect(markup).toContain("<mn>2</mn>");
-        expect(markup).toContain("<mi>\u03c9</mi>");                        // \omega
-        expect(markup).toContain("<mi mathvariant=\"normal\">\u03A9</mi>"); // \Omega
-        expect(markup).toContain("<mi>\u0131</mi>");                        // \imath
+        expect(markup).toContain("<mi mathvariant=\"script\">x</mi>");
+        expect(markup).toContain("<mn mathvariant=\"script\">2</mn>");
+        expect(markup).toContain("<mi mathvariant=\"script\">\u03c9</mi>"); // \omega
+        expect(markup).toContain("<mi mathvariant=\"script\">\u03A9</mi>"); // \Omega
+        expect(markup).toContain("<mi mathvariant=\"script\">\u0131</mi>"); // \imath
         expect(markup).toContain("<mo>+</mo>");
     });
 
@@ -1848,9 +1948,9 @@ describe("A MathML font tree-builder", function() {
         expect(markup).toContain("<mi mathvariant=\"sans-serif\">A</mi>");
         expect(markup).toContain("<mi mathvariant=\"sans-serif\">x</mi>");
         expect(markup).toContain("<mn mathvariant=\"sans-serif\">2</mn>");
-        expect(markup).toContain("<mi>\u03c9</mi>");                            // \omega
+        expect(markup).toContain("<mi mathvariant=\"sans-serif\">\u03c9</mi>"); // \omega
         expect(markup).toContain("<mi mathvariant=\"sans-serif\">\u03A9</mi>"); // \Omega
-        expect(markup).toContain("<mi>\u0131</mi>");                            // \imath
+        expect(markup).toContain("<mi mathvariant=\"sans-serif\">\u0131</mi>"); // \imath
         expect(markup).toContain("<mo>+</mo>");
     });
 
@@ -1890,6 +1990,57 @@ describe("A MathML font tree-builder", function() {
     });
 });
 
+describe("An includegraphics builder", function() {
+    const img = "\\includegraphics[height=0.9em, totalheight=0.9em, width=0.9em, alt=KA logo]{https://cdn.kastatic.org/images/apple-touch-icon-57x57-precomposed.new.png}";
+    it("should not fail", function() {
+        expect(img).toBuild(trustSettings);
+    });
+
+    it("should produce mords", function() {
+        expect(getBuilt(img, trustSettings)[0].classes).toContain("mord");
+    });
+
+    it("should not render without trust setting", function() {
+        const built = getBuilt(img);
+        expect(built).toMatchSnapshot();
+    });
+
+    it("should render with trust setting", function() {
+        const built = getBuilt(img, trustSettings);
+        expect(built).toMatchSnapshot();
+    });
+});
+
+describe("An HTML extension builder", function() {
+    const html =
+        "\\htmlId{bar}{x}\\htmlClass{foo}{x}\\htmlStyle{color: red;}{x}\\htmlData{foo=a, bar=b}{x}";
+    const trustNonStrictSettings = new Settings({trust: true, strict: false});
+    it("should not fail", function() {
+        expect(html).toBuild(trustNonStrictSettings);
+    });
+
+    it("should set HTML attributes", function() {
+        const built = getBuilt(html, trustNonStrictSettings);
+        expect(built[0].attributes.id).toMatch("bar");
+        expect(built[1].classes).toContain("foo");
+        expect(built[2].attributes.style).toMatch("color: red");
+        expect(built[3].attributes).toEqual({
+            "data-bar": "b",
+            "data-foo": "a",
+        });
+    });
+
+    it("should not affect spacing", function() {
+        const built = getBuilt("\\htmlId{a}{x+}y", trustNonStrictSettings);
+        expect(built).toMatchSnapshot();
+    });
+
+    it("should render with trust and strict setting", function() {
+        const built = getBuilt(html, trustNonStrictSettings);
+        expect(built).toMatchSnapshot();
+    });
+});
+
 describe("A bin builder", function() {
     it("should create mbins normally", function() {
         const built = getBuilt`x + y`;
@@ -1917,6 +2068,17 @@ describe("A bin builder", function() {
         expect(getBuilt`\blue{x}+y`[2].classes).toContain("mbin");
         expect(getBuilt`\blue{x+}+y`[2].classes).toContain("mbin");
         expect(getBuilt`\blue{x+}+y`[4].classes).toContain("mord");
+    });
+});
+
+describe("A \\phantom builder and \\smash builder", function() {
+    it("should both build a mord", function() {
+        expect(getBuilt`\hphantom{a}`[0].classes).toContain("mord");
+        expect(getBuilt`a\hphantom{=}b`[2].classes).toContain("mord");
+        expect(getBuilt`a\hphantom{+}b`[2].classes).toContain("mord");
+        expect(getBuilt`\smash{a}`[0].classes).toContain("mord");
+        expect(getBuilt`\smash{=}`[0].classes).toContain("mord");
+        expect(getBuilt`a\smash{+}b`[2].classes).toContain("mord");
     });
 });
 
@@ -2374,15 +2536,32 @@ describe("A smash parser", function() {
 
 describe("A smash builder", function() {
     it("should not fail", function() {
-        expect`\smash{x}`.toBuild();
-        expect`\smash{x^2}`.toBuild();
-        expect`\smash{x}^2`.toBuild();
-        expect`\smash x`.toBuild();
+        expect`\smash{x}`.toBuild(nonstrictSettings);
+        expect`\smash{x^2}`.toBuild(nonstrictSettings);
+        expect`\smash{x}^2`.toBuild(nonstrictSettings);
+        expect`\smash x`.toBuild(nonstrictSettings);
 
-        expect`\smash[b]{x}`.toBuild();
-        expect`\smash[b]{x^2}`.toBuild();
-        expect`\smash[b]{x}^2`.toBuild();
-        expect`\smash[b] x`.toBuild();
+        expect`\smash[b]{x}`.toBuild(nonstrictSettings);
+        expect`\smash[b]{x^2}`.toBuild(nonstrictSettings);
+        expect`\smash[b]{x}^2`.toBuild(nonstrictSettings);
+        expect`\smash[b] x`.toBuild(nonstrictSettings);
+    });
+});
+
+describe("A document fragment", function() {
+    it("should have paddings applied inside an extensible arrow", function() {
+        const markup = katex.renderToString("\\tiny\\xrightarrow\\textcolor{red}{x}");
+        expect(markup).toContain("x-arrow-pad");
+    });
+
+    it("should have paddings applied inside an enclose", function() {
+        const markup = katex.renderToString(r`\fbox\textcolor{red}{x}`);
+        expect(markup).toContain("boxpad");
+    });
+
+    it("should have paddings applied inside a square root", function() {
+        const markup = katex.renderToString(r`\sqrt\textcolor{red}{x}`);
+        expect(markup).toContain("padding-left");
     });
 });
 
@@ -2451,11 +2630,57 @@ describe("An array environment", function() {
 
 });
 
+describe("A subarray environment", function() {
+
+    it("should accept only a single alignment character", function() {
+        const parse = getParsed`\begin{subarray}{c}a \\ b\end{subarray}`;
+        expect(parse[0].type).toBe("array");
+        expect(parse[0].cols).toEqual([
+            {type: "align", align: "c"},
+        ]);
+        expect`\begin{subarray}{cc}a \\ b\end{subarray}`.not.toParse();
+        expect`\begin{subarray}{c}a & b \\ c & d\end{subarray}`.not.toParse();
+        expect`\begin{subarray}{c}a \\ b\end{subarray}`.toBuild();
+    });
+
+});
+
+describe("A substack function", function() {
+
+    it("should build", function() {
+        expect`\sum_{\substack{ 0<i<m \\ 0<j<n }}  P(i,j)`.toBuild();
+    });
+    it("should accommodate spaces in the argument", function() {
+        expect`\sum_{\substack{ 0<i<m \\ 0<j<n }}  P(i,j)`.toBuild();
+    });
+    it("should accommodate macros in the argument", function() {
+        expect`\sum_{\substack{ 0<i<\varPi \\ 0<j<\pi }}  P(i,j)`.toBuild();
+    });
+
+});
+
+describe("A smallmatrix environment", function() {
+
+    it("should build", function() {
+        expect`\begin{smallmatrix} a & b \\ c & d \end{smallmatrix}`.toBuild();
+    });
+
+});
+
 describe("A cases environment", function() {
 
     it("should parse its input", function() {
         expect`f(a,b)=\begin{cases}a+1&\text{if }b\text{ is odd}\\a&\text{if }b=0\\a-1&\text{otherwise}\end{cases}`
             .toParse();
+    });
+
+});
+
+describe("An rcases environment", function() {
+
+    it("should build", function() {
+        expect`\begin{rcases} a &\text{if } b \\ c &\text{if } d \end{rcases}⇒…`
+            .toBuild();
     });
 
 });
@@ -2483,6 +2708,9 @@ describe("An aligned environment", function() {
 describe("operatorname support", function() {
     it("should not fail", function() {
         expect("\\operatorname{x*Π∑\\Pi\\sum\\frac a b}").toBuild();
+        expect("\\operatorname*{x*Π∑\\Pi\\sum\\frac a b}").toBuild();
+        expect("\\operatorname*{x*Π∑\\Pi\\sum\\frac a b}_y x").toBuild();
+        expect("\\operatorname*{x*Π∑\\Pi\\sum\\frac a b}\\limits_y x").toBuild();
     });
 });
 
@@ -2490,48 +2718,41 @@ describe("href and url commands", function() {
     // We can't use raw strings for \url because \u is for Unicode escapes.
 
     it("should parse its input", function() {
-        expect`\href{http://example.com/}{example here}`.toBuild();
-        expect("\\url{http://example.com/}").toBuild();
+        expect`\href{http://example.com/}{\sin}`.toBuild(trustSettings);
+        expect("\\url{http://example.com/}").toBuild(trustSettings);
     });
 
     it("should allow empty URLs", function() {
-        expect`\href{}{example here}`.toBuild();
-        expect("\\url{}").toBuild();
+        expect`\href{}{example here}`.toBuild(trustSettings);
+        expect("\\url{}").toBuild(trustSettings);
     });
 
     it("should allow single-character URLs", () => {
-        expect`\href%end`.toParseLike("\\href{%}end");
-        expect`\href %end`.toParseLike("\\href{%}end");
-        expect("\\url%end").toParseLike("\\url{%}end");
-        expect("\\url %end").toParseLike("\\url{%}end");
-        expect("\\url end").toParseLike("\\url{e}nd");
-        expect("\\url%end").toParseLike("\\url {%}end");
-    });
-
-    it("should detect missing second argument in \\href", () => {
-        expect`\href{http://example.com/}`.not.toParse();
-        expect`\href%`.not.toParse();
-        expect`\href %`.not.toParse();
+        expect`\href%end`.toParseLike("\\href{%}end", trustSettings);
+        expect("\\url%end").toParseLike("\\url{%}end", trustSettings);
+        expect("\\url%%end\n").toParseLike("\\url{%}", trustSettings);
+        expect("\\url end").toParseLike("\\url{e}nd", trustSettings);
+        expect("\\url%end").toParseLike("\\url {%}end", trustSettings);
     });
 
     it("should allow spaces single-character URLs", () => {
-        expect`\href %end`.toParseLike("\\href{%}end");
-        expect("\\url %end").toParseLike("\\url{%}end");
+        expect`\href %end`.toParseLike("\\href{%}end", trustSettings);
+        expect("\\url %end").toParseLike("\\url{%}end", trustSettings);
     });
 
     it("should allow letters [#$%&~_^] without escaping", function() {
         const url = "http://example.org/~bar/#top?foo=$foo&bar=ba^r_boo%20baz";
-        const parsed1 = getParsed(`\\href{${url}}{\\alpha}`)[0];
+        const parsed1 = getParsed(`\\href{${url}}{\\alpha}`, trustSettings)[0];
         expect(parsed1.href).toBe(url);
-        const parsed2 = getParsed(`\\url{${url}}`)[0];
+        const parsed2 = getParsed(`\\url{${url}}`, trustSettings)[0];
         expect(parsed2.href).toBe(url);
     });
 
     it("should allow balanced braces in url", function() {
-        const url = "http://example.org/{too}";
-        const parsed1 = getParsed(`\\href{${url}}{\\alpha}`)[0];
+        const url = "http://example.org/{{}t{oo}}";
+        const parsed1 = getParsed(`\\href{${url}}{\\alpha}`, trustSettings)[0];
         expect(parsed1.href).toBe(url);
-        const parsed2 = getParsed(`\\url{${url}}`)[0];
+        const parsed2 = getParsed(`\\url{${url}}`, trustSettings)[0];
         expect(parsed2.href).toBe(url);
     });
 
@@ -2545,34 +2766,64 @@ describe("href and url commands", function() {
     it("should allow escape for letters [#$%&~_^{}]", function() {
         const url = "http://example.org/~bar/#top?foo=$}foo{&bar=bar^r_boo%20baz";
         const input = url.replace(/([#$%&~_^{}])/g, '\\$1');
-        const parsed1 = getParsed(`\\href{${input}}{\\alpha}`)[0];
+        const parsed1 = getParsed(`\\href{${input}}{\\alpha}`, trustSettings)[0];
         expect(parsed1.href).toBe(url);
-        const parsed2 = getParsed(`\\url{${input}}`)[0];
+        const parsed2 = getParsed(`\\url{${input}}`, trustSettings)[0];
         expect(parsed2.href).toBe(url);
     });
 
+    it("should allow comments after URLs", function() {
+        expect("\\url{http://example.com/}%comment\n").toBuild();
+    });
+
     it("should be marked up correctly", function() {
-        const markup = katex.renderToString(r`\href{http://example.com/}{example here}`);
+        const markup = katex.renderToString(r`\href{http://example.com/}{example here}`, {trust: true});
         expect(markup).toContain("<a href=\"http://example.com/\">");
     });
 
-    it("should allow protocols in allowedProtocols", function() {
-        expect("\\href{relative}{foo}").toParse();
-        expect("\\href{ftp://x}{foo}").toParse(new Settings({
-            allowedProtocols: ["ftp"],
-        }));
-        expect("\\href{ftp://x}{foo}").toParse(new Settings({
-            allowedProtocols: ["*"],
-        }));
+    it("should not affect spacing around", function() {
+        const built = getBuilt("a\\href{http://example.com/}{+b}", trustSettings);
+        expect(built).toMatchSnapshot();
     });
 
-    it("should not allow protocols not in allowedProtocols", function() {
-        expect("\\href{javascript:alert('x')}{foo}").not.toParse();
-        expect("\\href{relative}{foo}").not.toParse(new Settings({
-            allowedProtocols: [],
-        }));
+    it("should forbid relative URLs when trust option is false", () => {
+        const parsed = getParsed("\\href{relative}{foo}");
+        expect(parsed).toMatchSnapshot();
+    });
+
+    it("should allow explicitly allowed protocols", () => {
+        const parsed = getParsed(
+            "\\href{ftp://x}{foo}",
+            new Settings({trust: (context) => context.protocol === "ftp"}),
+        );
+        expect(parsed).toMatchSnapshot();
+    });
+
+    it("should allow all protocols when trust option is true", () => {
+        const parsed = getParsed("\\href{ftp://x}{foo}", trustSettings);
+        expect(parsed).toMatchSnapshot();
+    });
+
+    it("should not allow explicitly disallow protocols", () => {
+        const parsed = getParsed(
+            "\\href{javascript:alert('x')}{foo}",
+            new Settings({trust: context => context.protocol !== "javascript"}),
+        );
+        expect(parsed).toMatchSnapshot();
     });
 });
+
+describe("A raw text parser", function() {
+    it("should not not parse a mal-formed string", function() {
+        // In the next line, the first character passed to \includegraphics is a
+        // Unicode combining character. So this is a test that the parser will catch a bad string.
+        expect("\\includegraphics[\u030aheight=0.8em, totalheight=0.9em, width=0.9em]{" + "https://cdn.kastatic.org/images/apple-touch-icon-57x57-precomposed.new.png}").not.toParse();
+    });
+    it("should return null for a omitted optional string", function() {
+        expect("\\includegraphics{https://cdn.kastatic.org/images/apple-touch-icon-57x57-precomposed.new.png}").toParse();
+    });
+});
+
 
 describe("A parser that does not throw on unsupported commands", function() {
     // The parser breaks on unsupported commands unless it is explicitly
@@ -2724,6 +2975,30 @@ describe("A macro expander", function() {
         }}));
     });
 
+    it("should delay expansion if preceded by \\expandafter", function() {
+        expect`\expandafter\foo\bar`.toParseLike("x+y", new Settings({macros: {
+            "\\foo": "#1+#2",
+            "\\bar": "xy",
+        }}));
+        expect`\def\foo{x}\def\bar{\def\foo{y}}\expandafter\bar\foo`.toParseLike`x`;
+        // \def is not expandable, i.e., \expandafter doesn't define the macro
+        expect`\expandafter\foo\def\foo{x}`.not.toParse();
+    });
+
+    it("should not expand if preceded by \\noexpand", function() {
+        // \foo is not expanded and interpreted as if its meaning were \relax
+        expect`\noexpand\foo y`.toParseLike("y",
+            new Settings({macros: {"\\foo": "x"}}));
+        // \noexpand is expandable, so the second \foo is not expanded
+        expect`\expandafter\foo\noexpand\foo`.toParseLike("x",
+            new Settings({macros: {"\\foo": "x"}}));
+        // \frac is a macro and therefore expandable
+        expect`\noexpand\frac xy`.toParseLike`xy`;
+        // TODO(ylem): #2085
+        // \def is not expandable, so is not affected by \noexpand
+        // expect`\noexpand\def\foo{xy}\foo`.toParseLike`xy`;
+    });
+
     it("should allow for space macro argument (text version)", function() {
         expect`\text{\foo\bar}`.toParseLike(r`\text{( )}`, new Settings({macros: {
             "\\foo": "(#1)",
@@ -2796,9 +3071,14 @@ describe("A macro expander", function() {
         expect`\@ifstar{yes}{no}?!`.toParseLike`no?!`;
     });
 
-    it("\\@ifnextchar should not consume anything", function() {
+    it("\\@ifnextchar should not consume nonspaces", function() {
         expect`\@ifnextchar!{yes}{no}!!`.toParseLike`yes!!`;
         expect`\@ifnextchar!{yes}{no}?!`.toParseLike`no?!`;
+    });
+
+    it("\\@ifnextchar should consume spaces", function() {
+        expect`\def\x#1{\@ifnextchar x{yes}{no}}\x{}x\x{} x`
+            .toParseLike`yesxyesx`;
     });
 
     it("\\@ifstar should consume star but nothing else", function() {
@@ -2866,11 +3146,17 @@ describe("A macro expander", function() {
         expect('\\char"g').not.toParse();
     });
 
+    it("should build Unicode private area characters", function() {
+        expect`\gvertneqq\lvertneqq\ngeqq\ngeqslant\nleqq`.toBuild();
+        expect`\nleqslant\nshortmid\nshortparallel\varsubsetneq`.toBuild();
+        expect`\varsubsetneqq\varsupsetneq\varsupsetneqq`.toBuild();
+    });
+
     // TODO(edemaine): This doesn't work yet.  Parses like `\text text`,
     // which doesn't treat all four letters as an argument.
     //it("\\TextOrMath should work in a macro passed to \\text", function() {
     //    expect`\text\mode`.toParseLike(r`\text{text}`, new Settings({macros:
-    //        {"\\mode": "\\TextOrMath{text}{math}"});
+    //        {"\\mode": "\\TextOrMath{text}{math}"}});
     //});
 
     it("\\gdef defines macros", function() {
@@ -2894,6 +3180,21 @@ describe("A macro expander", function() {
         //expect`\gdef{\foo}{}`.not.toParse();
     });
 
+    it("\\xdef should expand definition", function() {
+        expect`\def\foo{a}\xdef\bar{\foo}\def\foo{}\bar`.toParseLike`a`;
+        // \def\noexpand\foo{} expands into \def\foo{}
+        expect`\def\foo{a}\xdef\bar{\def\noexpand\foo{}}\foo\bar\foo`.toParseLike`a`;
+        // \foo\noexpand\foo expands into a\foo
+        expect`\def\foo{a}\xdef\bar{\foo\noexpand\foo}\def\foo{b}\bar`.toParseLike`ab`;
+        // \foo is not defined
+        expect`\xdef\bar{\foo}`.not.toParse();
+    });
+
+    it("\\def should be handled in Parser", () => {
+        expect`\gdef\foo{1}`.toParse(new Settings({maxExpand: 0}));
+        expect`2^\def\foo{1}2`.not.toParse();
+    });
+
     it("\\def works locally", () => {
         expect("\\def\\x{1}\\x{\\def\\x{2}\\x{\\def\\x{3}\\x}\\x}\\x")
             .toParseLike`1{2{3}2}1`;
@@ -2910,12 +3211,21 @@ describe("A macro expander", function() {
             "\\x\\def\\x{5}\\x}\\x").toParseLike`1{2{34}35}3`;
     });
 
-    it("\\global needs to followed by \\def", () => {
+    it("\\global needs to followed by macro prefixes, \\def or \\edef", () => {
         expect`\global\def\foo{}\foo`.toParseLike``;
-        // TODO: This doesn't work yet; \global needs to expand argument.
-        //expect`\def\DEF{\def}\global\DEF\foo{}\foo`.toParseLike``;
+        expect`\global\edef\foo{}\foo`.toParseLike``;
+        expect`\def\DEF{\def}\global\DEF\foo{}\foo`.toParseLike``;
+        expect`\global\global\def\foo{}\foo`.toParseLike``;
+        expect`\global\long\def\foo{}\foo`.toParseLike``;
         expect`\global\foo`.not.toParse();
         expect`\global\bar x`.not.toParse();
+    });
+
+    it("\\long needs to followed by macro prefixes, \\def or \\edef", () => {
+        expect`\long\def\foo{}\foo`.toParseLike``;
+        expect`\long\edef\foo{}\foo`.toParseLike``;
+        expect`\long\global\def\foo{}\foo`.toParseLike``;
+        expect`\long\foo`.not.toParse();
     });
 
     it("Macro arguments do not generate groups", () => {
@@ -2934,6 +3244,13 @@ describe("A macro expander", function() {
             .toParseLike`11\sqrt[2]{2}11`;
     });
 
+    it("array cells generate groups", () => {
+        expect`\def\x{1}\begin{matrix}\x&\def\x{2}\x&\x\end{matrix}\x`
+            .toParseLike`\begin{matrix}1&2&1\end{matrix}1`;
+        expect`\def\x{1}\begin{matrix}\def\x{2}\x&\x\end{matrix}\x`
+            .toParseLike`\begin{matrix}2&1\end{matrix}1`;
+    });
+
     it("\\gdef changes settings.macros", () => {
         const macros = {};
         expect`\gdef\foo{1}`.toParse(new Settings({macros}));
@@ -2944,6 +3261,49 @@ describe("A macro expander", function() {
         const macros = {};
         expect`\def\foo{1}`.toParse(new Settings({macros}));
         expect(macros["\\foo"]).toBeFalsy();
+    });
+
+    it("\\def changes settings.macros with globalGroup", () => {
+        const macros = {};
+        expect`\gdef\foo{1}`.toParse(new Settings({macros, globalGroup: true}));
+        expect(macros["\\foo"]).toBeTruthy();
+    });
+
+    it("\\let copies the definition", () => {
+        expect`\let\foo=\frac\def\frac{}\foo12`.toParseLike`\frac12`;
+        expect`\def\foo{1}\let\bar\foo\def\foo{2}\bar`.toParseLike`1`;
+        expect`\let\foo=\kern\edef\bar{\foo1em}\let\kern=\relax\bar`.toParseLike`\kern1em`;
+        // \foo = { (left brace)
+        expect`\let\foo{\frac\foo1}{2}`.toParseLike`\frac{1}{2}`;
+        // \equals = = (equal sign)
+        expect`\let\equals==a\equals b`.toParseLike`a=b`;
+        // \foo should not be expandable and not affected by \noexpand or \edef
+        expect`\let\foo=x\noexpand\foo`.toParseLike`x`;
+        expect`\let\foo=x\edef\bar{\foo}\def\foo{y}\bar`.toParseLike`y`;
+    });
+
+    it("\\let should consume one optional space after equals sign", () => {
+        // https://tex.stackexchange.com/questions/141166/let-foo-bar-vs-let-foo-bar-let-with-equals-sign
+        expect`\def\:{\let\space= }\: \text{\space}`.toParseLike`\text{ }`;
+        const tree = getParsed`\def\bold{\bgroup\bf\let\next= }\bold{a}`;
+        expect(tree).toMatchSnapshot();
+    });
+
+    it("\\futurelet should parse correctly", () => {
+        expect`\futurelet\foo\frac1{2+\foo}`.toParseLike`\frac1{2+1}`;
+    });
+
+    it("\\newcommand doesn't change settings.macros", () => {
+        const macros = {};
+        expect`\newcommand\foo{x^2}\foo+\foo`.toParse(new Settings({macros}));
+        expect(macros["\\foo"]).toBeFalsy();
+    });
+
+    it("\\newcommand changes settings.macros with globalGroup", () => {
+        const macros = {};
+        expect`\newcommand\foo{x^2}\foo+\foo`.toParse(
+            new Settings({macros, globalGroup: true}));
+        expect(macros["\\foo"]).toBeTruthy();
     });
 
     it("\\newcommand defines new macros", () => {
@@ -3002,11 +3362,43 @@ describe("A macro expander", function() {
     });
 
     it("should expand \\limsup as expected", () => {
-        expect`\limsup`.toParseLike`\mathop{\operatorname{lim\,sup}}\limits`;
+        expect`\limsup`.toParseLike`\operatorname*{lim\,sup}`;
     });
 
     it("should expand \\liminf as expected", () => {
-        expect`\liminf`.toParseLike`\mathop{\operatorname{lim\,inf}}\limits`;
+        expect`\liminf`.toParseLike`\operatorname*{lim\,inf}`;
+    });
+
+    it("should expand \\plim as expected", () => {
+        expect`\plim`.toParseLike`\mathop{\operatorname{plim}}\limits`;
+    });
+
+    it("should expand \\argmin as expected", () => {
+        expect`\argmin`.toParseLike`\operatorname*{arg\,min}`;
+    });
+
+    it("should expand \\argmax as expected", () => {
+        expect`\argmax`.toParseLike`\operatorname*{arg\,max}`;
+    });
+
+    it("should expand \\bra as expected", () => {
+        expect`\bra{\phi}`.toParseLike`\mathinner{\langle{\phi}|}`;
+    });
+
+    it("should expand \\ket as expected", () => {
+        expect`\ket{\psi}`.toParseLike`\mathinner{|{\psi}\rangle}`;
+    });
+
+    it("should expand \\braket as expected", () => {
+        expect`\braket{\phi|\psi}`.toParseLike`\mathinner{\langle{\phi|\psi}\rangle}`;
+    });
+
+    it("should expand \\Bra as expected", () => {
+        expect`\Bra{\phi}`.toParseLike`\left\langle\phi\right|`;
+    });
+
+    it("should expand \\Ket as expected", () => {
+        expect`\Ket{\psi}`.toParseLike`\left|\psi\right\rangle`;
     });
 });
 
@@ -3032,6 +3424,29 @@ describe("\\tag support", function() {
     it("should handle \\tag* like \\tag", () => {
         expect`\tag{hi}x+y`.toParseLike(r`\tag*{({hi})}x+y`, displayMode);
     });
+});
+
+describe("leqno and fleqn rendering options", () => {
+    const expr = r`\tag{hi}x+y`;
+    for (const opt of ["leqno", "fleqn"]) {
+        it(`should not add ${opt} class by default`, () => {
+            const settings = new Settings({displayMode: true});
+            const built = katex.__renderToDomTree(expr, settings);
+            expect(built.classes).not.toContain(opt);
+        });
+        it(`should not add ${opt} class when false`, () => {
+            const settings = new Settings({displayMode: true});
+            settings[opt] = false;
+            const built = katex.__renderToDomTree(expr, settings);
+            expect(built.classes).not.toContain(opt);
+        });
+        it(`should add ${opt} class when true`, () => {
+            const settings = new Settings({displayMode: true});
+            settings[opt] = true;
+            const built = katex.__renderToDomTree(expr, settings);
+            expect(built.classes).toContain(opt);
+        });
+    }
 });
 
 describe("\\@binrel automatic bin/rel/ord", () => {
@@ -3145,14 +3560,13 @@ describe("Unicode", function() {
     });
 
     it("should parse symbols", function() {
-        expect("ð").toParse();  // warns about lacking character metrics
-        expect("£¥ℂℍℑℓℕ℘ℙℚℜℝℤℲℵℶℷℸ⅁∀∁∂∃∇∞∠∡∢♠♡♢♣♭♮♯✓°¬‼⋮\u00B7\u00A9").toBuild(strictSettings);
-        expect("\\text{£¥\u00A9\u00AE\uFE0F}").toBuild(strictSettings);
+        expect("£¥ℂℍℑℎℓℕ℘ℙℚℜℝℤℲℵðℶℷℸ⅁∀∁∂∃∇∞∠∡∢♠♡♢♣♭♮♯✓°¬‼⋮\u00B7\u00A9").toBuild(strictSettings);
+        expect("\\text{£¥ℂℍℎ\u00A9\u00AE\uFE0F}").toBuild(strictSettings);
     });
 
     it("should build Greek capital letters", function() {
         expect("\u0391\u0392\u0395\u0396\u0397\u0399\u039A\u039C\u039D" +
-                "\u039F\u03A1\u03A4\u03A7").toBuild(strictSettings);
+                "\u039F\u03A1\u03A4\u03A7\u03DD").toBuild(strictSettings);
     });
 
     it("should build arrows", function() {
@@ -3175,6 +3589,9 @@ describe("Unicode", function() {
         expect("\\left\u23b0\\frac{a}{b}\\right\u23b1").toBuild();
         expect`┌x┐ └x┘`.toBuild();
         expect("\u231Cx\u231D \u231Ex\u231F").toBuild();
+        expect("\u27E6x\u27E7").toBuild();
+        expect("\\llbracket \\rrbracket").toBuild();
+        expect("\\lBrace \\rBrace").toBuild();
     });
 
     it("should build some surrogate pairs", function() {
@@ -3238,8 +3655,7 @@ describe("The maxSize setting", function() {
 describe("The maxExpand setting", () => {
     it("should prevent expansion", () => {
         expect`\gdef\foo{1}\foo`.toParse();
-        expect`\gdef\foo{1}\foo`.toParse(new Settings({maxExpand: 2}));
-        expect`\gdef\foo{1}\foo`.not.toParse(new Settings({maxExpand: 1}));
+        expect`\gdef\foo{1}\foo`.toParse(new Settings({maxExpand: 1}));
         expect`\gdef\foo{1}\foo`.not.toParse(new Settings({maxExpand: 0}));
     });
 
@@ -3284,6 +3700,15 @@ describe("Newlines via \\\\ and \\newline", function() {
     it("array redefines and resets \\\\", () => {
         expect`a\\b\begin{matrix}x&y\\z&w\end{matrix}\\c`
             .toParseLike`a\newline b\begin{matrix}x&y\cr z&w\end{matrix}\newline c`;
+    });
+
+    it("\\\\ causes newline, even after mrel and mop", () => {
+        const markup = katex.renderToString(r`M = \\ a + \\ b \\ c`);
+        // Ensure newlines appear outside base spans (because, in this regexp,
+        // base span occurs immediately after each newline span).
+        expect(markup).toMatch(
+            /(<span class="base">.*?<\/span><span class="mspace newline"><\/span>){3}<span class="base">/);
+        expect(markup).toMatchSnapshot();
     });
 });
 
@@ -3396,5 +3821,25 @@ describe("Extending katex by new fonts and symbols", function() {
     });
     it("Add new font class to new extended symbols", () => {
         expect(katex.renderToString("۹۹^{۱۱}")).toMatchSnapshot();
+    });
+});
+
+describe("debugging macros", () => {
+    describe("message", () => {
+        it("should print the argument using console.log", () => {
+            jest.spyOn(console, "log");
+            expect`\message{Hello, world}`.toParse();
+            // eslint-disable-next-line no-console
+            expect(console.log.mock.calls[0][0]).toEqual("Hello, world");
+        });
+    });
+
+    describe("errmessage", () => {
+        it("should print the argument using console.error", () => {
+            jest.spyOn(console, "error");
+            expect`\errmessage{Hello, world}`.toParse();
+            // eslint-disable-next-line no-console
+            expect(console.error.mock.calls[0][0]).toEqual("Hello, world");
+        });
     });
 });

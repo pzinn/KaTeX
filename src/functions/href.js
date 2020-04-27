@@ -2,7 +2,6 @@
 import defineFunction, {ordargument} from "../defineFunction";
 import buildCommon from "../buildCommon";
 import {assertNodeType} from "../parseNode";
-import {assertType} from "../utils";
 import {MathNode} from "../mathMLTree";
 
 import * as html from "../buildHTML";
@@ -19,6 +18,14 @@ defineFunction({
     handler: ({parser}, args) => {
         const body = args[1];
         const href = assertNodeType(args[0], "url").url;
+
+        if (!parser.settings.isTrusted({
+            command: "\\href",
+            url: href,
+        })) {
+            return parser.formatUnsupportedCmd("\\href");
+        }
+
         return {
             type: "href",
             mode: parser.mode,
@@ -31,8 +38,11 @@ defineFunction({
         return buildCommon.makeAnchor(group.href, [], elements, options);
     },
     mathmlBuilder: (group, options) => {
-        const math = mml.buildExpressionRow(group.body, options);
-        assertType(math, MathNode).setAttribute("href", group.href);
+        let math = mml.buildExpressionRow(group.body, options);
+        if (!(math instanceof MathNode)) {
+            math = new MathNode("mrow", [math]);
+        }
+        math.setAttribute("href", group.href);
         return math;
     },
 });
@@ -47,6 +57,14 @@ defineFunction({
     },
     handler: ({parser}, args) => {
         const href = assertNodeType(args[0], "url").url;
+
+        if (!parser.settings.isTrusted({
+            command: "\\url",
+            url: href,
+        })) {
+            return parser.formatUnsupportedCmd("\\url");
+        }
+
         const chars = [];
         for (let i = 0; i < href.length; i++) {
             let c = href[i];

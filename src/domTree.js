@@ -13,7 +13,7 @@
  */
 import {scriptFromCodepoint} from "./unicodeScripts";
 import utils from "./utils";
-import svgGeometry from "./svgGeometry";
+import {path} from "./svgGeometry";
 import type Options from "./Options";
 import {DocumentFragment} from "./tree";
 
@@ -136,12 +136,16 @@ export type CssStyle = $Shape<{
     backgroundColor: string,
     borderBottomWidth: string,
     borderColor: string,
+    borderRightStyle: string,
     borderRightWidth: string,
     borderTopWidth: string,
+    borderStyle: string;
+    borderWidth: string,
     bottom: string,
     color: string,
     height: string,
     left: string,
+    margin: string,
     marginLeft: string,
     marginRight: string,
     marginTop: string,
@@ -261,6 +265,69 @@ export class Anchor implements HtmlDomNode {
 
     toMarkup(): string {
         return toMarkup.call(this, "a");
+    }
+}
+
+/**
+ * This node represents an image embed (<img>) element.
+ */
+export class Img implements VirtualNode {
+    src: string;
+    alt: string;
+    classes: string[];
+    height: number;
+    depth: number;
+    maxFontSize: number;
+    style: CssStyle;
+
+    constructor(
+        src: string,
+        alt: string,
+        style: CssStyle,
+    ) {
+        this.alt = alt;
+        this.src = src;
+        this.classes = ["mord"];
+        this.style = style;
+    }
+
+    hasClass(className: string): boolean {
+        return utils.contains(this.classes, className);
+    }
+
+    toNode(): Node {
+        const node = document.createElement("img");
+        node.src = this.src;
+        node.alt = this.alt;
+        node.className = "mord";
+
+        // Apply inline styles
+        for (const style in this.style) {
+            if (this.style.hasOwnProperty(style)) {
+                // $FlowFixMe
+                node.style[style] = this.style[style];
+            }
+        }
+
+        return node;
+    }
+
+    toMarkup(): string {
+        let markup = `<img  src='${this.src} 'alt='${this.alt}' `;
+
+        // Add the styles, after hyphenation
+        let styles = "";
+        for (const style in this.style) {
+            if (this.style.hasOwnProperty(style)) {
+                styles += `${utils.hyphenate(style)}:${this.style[style]};`;
+            }
+        }
+        if (styles) {
+            markup += ` style="${utils.escape(styles)}"`;
+        }
+
+        markup += "'/>";
+        return markup;
     }
 }
 
@@ -488,7 +555,7 @@ export class PathNode implements VirtualNode {
 
     constructor(pathName: string, alternate?: string) {
         this.pathName = pathName;
-        this.alternate = alternate;  // Used only for tall \sqrt
+        this.alternate = alternate;  // Used only for \sqrt
     }
 
     toNode(): Node {
@@ -498,7 +565,7 @@ export class PathNode implements VirtualNode {
         if (this.alternate) {
             node.setAttribute("d", this.alternate);
         } else {
-            node.setAttribute("d", svgGeometry.path[this.pathName]);
+            node.setAttribute("d", path[this.pathName]);
         }
 
         return node;
@@ -508,7 +575,7 @@ export class PathNode implements VirtualNode {
         if (this.alternate) {
             return `<path d='${this.alternate}'/>`;
         } else {
-            return `<path d='${svgGeometry.path[this.pathName]}'/>`;
+            return `<path d='${path[this.pathName]}'/>`;
         }
     }
 }

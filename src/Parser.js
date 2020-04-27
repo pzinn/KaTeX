@@ -1,21 +1,19 @@
 // @flow
 /* eslint no-constant-condition:0 */
 import functions from "./functions";
-import environments from "./environments";
-import MacroExpander from "./MacroExpander";
+import MacroExpander, {implicitCommands} from "./MacroExpander";
 import symbols, {ATOMS, extraLatin} from "./symbols";
 import {validUnit} from "./units";
 import {supportedCodepoint} from "./unicodeScripts";
 import unicodeAccents from "./unicodeAccents";
 import unicodeSymbols from "./unicodeSymbols";
-import utils from "./utils";
-import {assertNodeType, checkNodeType} from "./parseNode";
 import ParseError from "./ParseError";
-import {combiningDiacriticalMarksEndRegex, urlFunctionRegex} from "./Lexer";
+import {combiningDiacriticalMarksEndRegex} from "./Lexer";
 import Settings from "./Settings";
 import SourceLocation from "./SourceLocation";
 import {Token} from "./Token";
-import type {AnyParseNode, SymbolParseNode} from "./parseNode";
+import type {ParseNode, AnyParseNode, SymbolParseNode, UnsupportedCmdParseNode}
+    from "./parseNode";
 import type {Atom, Group} from "./symbols";
 import type {Mode, ArgType, BreakToken} from "./types";
 import type {FunctionContext, FunctionSpec} from "./defineFunction";
@@ -48,39 +46,15 @@ import type {EnvSpec} from "./defineEnvironment";
  * There are also extra `.handle...` functions, which pull out some reused
  * functionality into self-contained functions.
  *
- * The earlier functions return ParseNodes.
- * The later functions (which are called deeper in the parse) sometimes return
- * ParsedFuncOrArg, which contain a ParseNode as well as some data about
- * whether the parsed object is a function which is missing some arguments, or a
- * standalone object which can be used as an argument to another function.
+ * The functions return ParseNodes.
  */
-
-type ParsedFunc = {|
-    type: "fn",
-    result: string, // Function name defined via defineFunction (e.g. "\\frac").
-    token: Token,
-|};
-type ParsedArg = {|
-    type: "arg",
-    result: AnyParseNode,
-    token: Token,
-|};
-type ParsedFuncOrArg = ParsedFunc | ParsedArg;
-
-function newArgument(result: AnyParseNode, token: Token): ParsedArg {
-    return {type: "arg", result, token};
-}
-
-function newFunction(token: Token): ParsedFunc {
-    return {type: "fn", result: token.text, token};
-}
 
 export default class Parser {
     mode: Mode;
     gullet: MacroExpander;
     settings: Settings;
     leftrightDepth: number;
-    nextToken: Token;
+    nextToken: ?Token;
 
     constructor(input: string, settings: Settings) {
         // Start in math mode
@@ -99,10 +73,9 @@ export default class Parser {
      * appropriate error otherwise.
      */
     expect(text: string, consume?: boolean = true) {
-        if (this.nextToken.text !== text) {
+        if (this.fetch().text !== text) {
             throw new ParseError(
-                "Expected '" + text + "', got '" + this.nextToken.text + "'",
-                this.nextToken
+                `Expected '${text}', got '${this.fetch().text}'`, this.fetch()
             );
         }
         if (consume) {
@@ -111,11 +84,22 @@ export default class Parser {
     }
 
     /**
-     * Considers the current look ahead token as consumed,
-     * and fetches the one after that as the new look ahead.
+     * Discards the current lookahead token, considering it consumed.
      */
     consume() {
-        this.nextToken = this.gullet.expandNextToken();
+        this.nextToken = null;
+    }
+
+    /**
+     * Return the current lookahead token, or if there isn't one (at the
+     * beginning, or if the previous lookahead token was consume()d),
+     * fetch the next token as the new lookahead token and return it.
+     */
+    fetch(): Token {
+        if (this.nextToken == null) {
+            this.nextToken = this.gullet.expandNextToken();
+        }
+        return this.nextToken;
     }
 
     /**
@@ -130,9 +114,11 @@ export default class Parser {
      * Main parsing function, which parses an entire input.
      */
     parse(): AnyParseNode[] {
-        // Create a group namespace for the math expression.
-        // (LaTeX creates a new group for every $...$, $$...$$, \[...\].)
-        this.gullet.beginGroup();
+        if (!this.settings.globalGroup) {
+            // Create a group namespace for the math expression.
+            // (LaTeX creates a new group for every $...$, $$...$$, \[...\].)
+            this.gullet.beginGroup();
+        }
 
         // Use old \color behavior (same as LaTeX's \textcolor) if requested.
         // We do this within the group for the math expression, so it doesn't
@@ -142,18 +128,25 @@ export default class Parser {
         }
 
         // Try to parse the input
-        this.consume();
         const parse = this.parseExpression(false);
 
         // If we succeeded, make sure there's an EOF at the end
-        this.expect("EOF", false);
+        this.expect("EOF");
 
         // End the group namespace for the expression
-        this.gullet.endGroup();
+        if (!this.settings.globalGroup) {
+            this.gullet.endGroup();
+        }
         return parse;
     }
 
-    static endOfExpression = ["}", "\\end", "\\right", "&"];
+    static endOfExpression = ["}", "\\endgroup", "\\end", "\\right", "&"];
+
+    static endOfGroup = {
+        "[": "]",
+        "{": "}",
+        "\\begingroup": "\\endgroup",
+    }
 
     /**
      * Parses an "expression", which is a list of atoms.
@@ -178,7 +171,7 @@ export default class Parser {
             if (this.mode === "math") {
                 this.consumeSpaces();
             }
-            const lex = this.nextToken;
+            const lex = this.fetch();
             if (Parser.endOfExpression.indexOf(lex.text) !== -1) {
                 break;
             }
@@ -190,13 +183,9 @@ export default class Parser {
             }
             const atom = this.parseAtom(breakOnTokenText);
             if (!atom) {
-                if (!this.settings.throwOnError && lex.text[0] === "\\") {
-                    const errorNode = this.handleUnsupportedCmd();
-                    body.push(errorNode);
-                    continue;
-                }
-
                 break;
+            } else if (atom.type === "internal") {
+                continue;
             }
             body.push(atom);
         }
@@ -218,15 +207,14 @@ export default class Parser {
         let funcName;
 
         for (let i = 0; i < body.length; i++) {
-            const node = checkNodeType(body[i], "infix");
-            if (node) {
+            if (body[i].type === "infix") {
                 if (overIndex !== -1) {
                     throw new ParseError(
                         "only one infix operator per group",
-                        node.token);
+                        body[i].token);
                 }
                 overIndex = i;
-                funcName = node.replaceWith;
+                funcName = body[i].replaceWith;
             }
         }
 
@@ -271,45 +259,28 @@ export default class Parser {
     handleSupSubscript(
         name: string,   // For error reporting.
     ): AnyParseNode {
-        const symbolToken = this.nextToken;
+        const symbolToken = this.fetch();
         const symbol = symbolToken.text;
         this.consume();
-        this.consumeSpaces(); // ignore spaces before sup/subscript argument
-        const group = this.parseGroup();
+        const group = this.parseGroup(name, false, Parser.SUPSUB_GREEDINESS,
+            undefined, undefined, true);
+                                 // ignore spaces before sup/subscript argument
 
         if (!group) {
-            if (!this.settings.throwOnError && this.nextToken.text[0] === "\\") {
-                return this.handleUnsupportedCmd();
-            } else {
-                throw new ParseError(
-                    "Expected group after '" + symbol + "'",
-                    symbolToken
-                );
-            }
+            throw new ParseError(
+                "Expected group after '" + symbol + "'",
+                symbolToken
+            );
         }
 
-        if (group.type === "fn") {
-            // ^ and _ have a greediness, so handle interactions with functions'
-            // greediness
-            const funcGreediness = functions[group.result].greediness;
-            if (funcGreediness > Parser.SUPSUB_GREEDINESS) {
-                return this.parseGivenFunction(group);
-            } else {
-                throw new ParseError(
-                    "Got function '" + group.result + "' with no arguments " +
-                        "as " + name, symbolToken);
-            }
-        } else {
-            return group.result;
-        }
+        return group;
     }
 
     /**
      * Converts the textual input of an unsupported command into a text node
      * contained within a color node whose color is determined by errorColor
      */
-    handleUnsupportedCmd(): AnyParseNode {
-        const text = this.nextToken.text;
+    formatUnsupportedCmd(text: string): UnsupportedCmdParseNode {
         const textordArray = [];
 
         for (let i = 0; i < text.length; i++) {
@@ -329,7 +300,6 @@ export default class Parser {
             body: [textNode],
         };
 
-        this.consume();
         return colorNode;
     }
 
@@ -339,7 +309,7 @@ export default class Parser {
     parseAtom(breakOnTokenText?: BreakToken): ?AnyParseNode {
         // The body of an atom is an implicit group, so that things like
         // \left(x\right)^2 work correctly.
-        const base = this.parseImplicitGroup(breakOnTokenText);
+        const base = this.parseGroup("atom", false, null, breakOnTokenText);
 
         // In text mode, we don't have superscripts or subscripts
         if (this.mode === "text") {
@@ -355,15 +325,18 @@ export default class Parser {
             this.consumeSpaces();
 
             // Lex the first token
-            const lex = this.nextToken;
+            const lex = this.fetch();
 
             if (lex.text === "\\limits" || lex.text === "\\nolimits") {
                 // We got a limit control
-                const opNode = checkNodeType(base, "op");
-                if (opNode) {
+                if (base && base.type === "op") {
                     const limits = lex.text === "\\limits";
-                    opNode.limits = limits;
-                    opNode.alwaysHandleSupSub = true;
+                    base.limits = limits;
+                    base.alwaysHandleSupSub = true;
+                } else if (base && base.type === "operatorname"
+                        && base.alwaysHandleSupSub) {
+                    const limits = lex.text === "\\limits";
+                    base.limits = limits;
                 } else {
                     throw new ParseError(
                         "Limit controls must follow a math operator",
@@ -393,14 +366,14 @@ export default class Parser {
                 const primes = [prime];
                 this.consume();
                 // Keep lexing tokens until we get something that's not a prime
-                while (this.nextToken.text === "'") {
+                while (this.fetch().text === "'") {
                     // For each one, add another prime to the list
                     primes.push(prime);
                     this.consume();
                 }
                 // If there's a superscript following the primes, combine that
                 // superscript in with the primes.
-                if (this.nextToken.text === "^") {
+                if (this.fetch().text === "^") {
                     primes.push(this.handleSupSubscript("superscript"));
                 }
                 // Put everything into an ordgroup as the superscript
@@ -429,115 +402,35 @@ export default class Parser {
     }
 
     /**
-     * Parses an implicit group, which is a group that starts at the end of a
-     * specified, and ends right before a higher explicit group ends, or at EOL. It
-     * is used for functions that appear to affect the current style, like \Large or
-     * \textrm, where instead of keeping a style we just pretend that there is an
-     * implicit grouping after it until the end of the group. E.g.
-     *   small text {\Large large text} small text again
-     */
-    parseImplicitGroup(breakOnTokenText?: BreakToken): ?AnyParseNode {
-        const start = this.parseSymbol();
-
-        if (start == null) {
-            // If we didn't get anything we handle, fall back to parseFunction
-            return this.parseFunction();
-        } else if (start.type === "arg") {
-            // Defer to parseGivenFunction if it's not a function we handle
-            return this.parseGivenFunction(start);
-        }
-
-        const func = start.result;
-
-        if (func === "\\begin") {
-            // begin...end is similar to left...right
-            const begin =
-                assertNodeType(this.parseGivenFunction(start), "environment");
-
-            const envName = begin.name;
-            if (!environments.hasOwnProperty(envName)) {
-                throw new ParseError(
-                    "No such environment: " + envName, begin.nameGroup);
-            }
-            // Build the environment object. Arguments and other information will
-            // be made available to the begin and end methods using properties.
-            const env = environments[envName];
-            const {args, optArgs} =
-                this.parseArguments("\\begin{" + envName + "}", env);
-            const context = {
-                mode: this.mode,
-                envName: envName,
-                parser: this,
-            };
-            const result = env.handler(context, args, optArgs);
-            this.expect("\\end", false);
-            const endNameToken = this.nextToken;
-            let end = this.parseFunction();
-            if (!end) {
-                throw new ParseError("failed to parse function after \\end");
-            }
-            end = assertNodeType(end, "environment");
-            if (end.name !== envName) {
-                throw new ParseError(
-                    `Mismatch: \\begin{${envName}} matched by \\end{${end.name}}`,
-                    endNameToken);
-            }
-            return result;
-        } else {
-            // Defer to parseGivenFunction if it's not a function we handle
-            return this.parseGivenFunction(start, breakOnTokenText);
-        }
-    }
-
-    /**
      * Parses an entire function, including its base and all of its arguments.
-     * It also handles the case where the parsed node is not a function.
      */
-    parseFunction(): ?AnyParseNode {
-        const baseGroup = this.parseGroup();
-        return baseGroup ? this.parseGivenFunction(baseGroup) : null;
-    }
-
-    /**
-     * Same as parseFunction(), except that the base is provided, guaranteeing a
-     * non-nullable result.
-     */
-    parseGivenFunction(
-        baseGroup: ParsedFuncOrArg,
+    parseFunction(
         breakOnTokenText?: BreakToken,
-    ): AnyParseNode {
-        if (baseGroup.type === "fn") {
-            const func = baseGroup.result;
-            const funcData = functions[func];
-            if (this.mode === "text" && !funcData.allowedInText) {
-                throw new ParseError(
-                    "Can't use function '" + func + "' in text mode",
-                    baseGroup.token);
-            } else if (this.mode === "math" &&
-                funcData.allowedInMath === false) {
-                throw new ParseError(
-                    "Can't use function '" + func + "' in math mode",
-                    baseGroup.token);
-            }
-
-            // Consume the command token after possibly switching to the
-            // mode specified by the function (for instant mode switching),
-            // and then immediately switch back.
-            if (funcData.consumeMode) {
-                const oldMode = this.mode;
-                this.switchMode(funcData.consumeMode);
-                this.consume();
-                this.switchMode(oldMode);
-            } else {
-                this.consume();
-            }
-            const {args, optArgs} = this.parseArguments(func, funcData);
-            const token = baseGroup.token;
-            return this.callFunction(
-                func, args, optArgs, token, breakOnTokenText);
-        } else {
-            return baseGroup.result;
+        name?: string, // For error reporting.
+        greediness?: ?number,
+    ): ?AnyParseNode {
+        const token = this.fetch();
+        const func = token.text;
+        const funcData = functions[func];
+        if (!funcData) {
+            return null;
         }
+        this.consume(); // consume command token
+
+        if (greediness != null && funcData.greediness <= greediness) {
+            throw new ParseError(
+                "Got function '" + func + "' with no arguments" +
+                (name ? " as " + name : ""), token);
+        } else if (this.mode === "text" && !funcData.allowedInText) {
+            throw new ParseError(
+                "Can't use function '" + func + "' in text mode", token);
+        } else if (this.mode === "math" && funcData.allowedInMath === false) {
+            throw new ParseError(
+                "Can't use function '" + func + "' in math mode", token);
+        }
+
+        const {args, optArgs} = this.parseArguments(func, funcData);
+        return this.callFunction(func, args, optArgs, token, breakOnTokenText);
     }
 
     /**
@@ -590,50 +483,25 @@ export default class Parser {
             // "After you have said ‘\def\row#1#2{...}’, you are allowed to
             //  put spaces between the arguments (e.g., ‘\row x n’), because
             //  TeX doesn’t use single spaces as undelimited arguments."
-            if (i > 0 && !isOptional) {
-                this.consumeSpaces();
-            }
+            const consumeSpaces = (i > 0 && !isOptional) ||
             // Also consume leading spaces in math mode, as parseSymbol
             // won't know what to do with them.  This can only happen with
             // macros, e.g. \frac\foo\foo where \foo expands to a space symbol.
-            // In LaTeX, the \foo's get treated as (blank) arguments).
+            // In LaTeX, the \foo's get treated as (blank) arguments.
             // In KaTeX, for now, both spaces will get consumed.
             // TODO(edemaine)
-            if (i === 0 && !isOptional && this.mode === "math") {
-                this.consumeSpaces();
-            }
-            const nextToken = this.nextToken;
-            let arg = argType ?
-                this.parseGroupOfType(argType, isOptional) :
-                this.parseGroup(isOptional);
+                (i === 0 && !isOptional && this.mode === "math");
+            const arg = this.parseGroupOfType(`argument to '${func}'`,
+                argType, isOptional, baseGreediness, consumeSpaces);
             if (!arg) {
                 if (isOptional) {
                     optArgs.push(null);
                     continue;
                 }
-                if (!this.settings.throwOnError &&
-                    this.nextToken.text[0] === "\\") {
-                    arg = newArgument(this.handleUnsupportedCmd(), nextToken);
-                } else {
-                    throw new ParseError(
-                        "Expected group after '" + func + "'", nextToken);
-                }
+                throw new ParseError(
+                    `Expected group after '${func}'`, this.fetch());
             }
-            let argNode: AnyParseNode;
-            if (arg.type === "fn") {
-                const argGreediness =
-                    functions[arg.result].greediness;
-                if (argGreediness > baseGreediness) {
-                    argNode = this.parseGivenFunction(arg);
-                } else {
-                    throw new ParseError(
-                        "Got function '" + arg.result + "' as " +
-                        "argument to '" + func + "'", nextToken);
-                }
-            } else {
-                argNode = arg.result;
-            }
-            (isOptional ? optArgs : args).push(argNode);
+            (isOptional ? optArgs : args).push(arg);
         }
 
         return {args, optArgs};
@@ -643,33 +511,79 @@ export default class Parser {
      * Parses a group when the mode is changing.
      */
     parseGroupOfType(
-        type: ArgType,  // Used to describe the mode in error messages.
+        name: string,
+        type: ?ArgType,
         optional: boolean,
-    ): ?ParsedFuncOrArg {
-        // Handle `original` argTypes
-        if (type === "original") {
-            type = this.mode;
+        greediness: ?number,
+        consumeSpaces: boolean,
+    ): ?AnyParseNode {
+        switch (type) {
+            case "color":
+                if (consumeSpaces) {
+                    this.consumeSpaces();
+                }
+                return this.parseColorGroup(optional);
+            case "size":
+                if (consumeSpaces) {
+                    this.consumeSpaces();
+                }
+                return this.parseSizeGroup(optional);
+            case "url":
+                return this.parseUrlGroup(optional, consumeSpaces);
+            case "math":
+            case "text":
+                return this.parseGroup(
+                    name, optional, greediness, undefined, type, consumeSpaces);
+            case "hbox": {
+                // hbox argument type wraps the argument in the equivalent of
+                // \hbox, which is like \text but switching to \textstyle size.
+                const group = this.parseGroup(name, optional, greediness,
+                    undefined, "text", consumeSpaces);
+                if (!group) {
+                    return group;
+                }
+                const styledGroup = {
+                    type: "styling",
+                    mode: group.mode,
+                    body: [group],
+                    style: "text", // simulate \textstyle
+                };
+                return styledGroup;
+            }
+            case "raw": {
+                if (consumeSpaces) {
+                    this.consumeSpaces();
+                }
+                if (optional && this.fetch().text === "{") {
+                    return null;
+                }
+                const token = this.parseStringGroup("raw", optional, true);
+                if (token) {
+                    return {
+                        type: "raw",
+                        mode: "text",
+                        string: token.text,
+                    };
+                } else {
+                    throw new ParseError("Expected raw group", this.fetch());
+                }
+            }
+            case "original":
+            case null:
+            case undefined:
+                return this.parseGroup(name, optional, greediness,
+                    undefined, undefined, consumeSpaces);
+            default:
+                throw new ParseError(
+                    "Unknown group type as " + name, this.fetch());
         }
-
-        if (type === "color") {
-            return this.parseColorGroup(optional);
-        }
-        if (type === "size") {
-            return this.parseSizeGroup(optional);
-        }
-        if (type === "url") {
-            throw new ParseError(
-                "Internal bug: 'url' arguments should be handled by Lexer",
-                this.nextToken);
-        }
-
-        // By the time we get here, type is one of "text" or "math".
-        // Specify this as mode to parseGroup.
-        return this.parseGroup(optional, type);
     }
 
+    /**
+     * Discard any space tokens, fetching the next non-space token.
+     */
     consumeSpaces() {
-        while (this.nextToken.text === " ") {
+        while (this.fetch().text === " ") {
             this.consume();
         }
     }
@@ -681,28 +595,48 @@ export default class Parser {
     parseStringGroup(
         modeName: ArgType,  // Used to describe the mode in error messages.
         optional: boolean,
+        raw?: boolean,
     ): ?Token {
-        if (optional && this.nextToken.text !== "[") {
-            return null;
+        const groupBegin = optional ? "[" : "{";
+        const groupEnd = optional ? "]" : "}";
+        const beginToken = this.fetch();
+        if (beginToken.text !== groupBegin) {
+            if (optional) {
+                return null;
+            } else if (raw && beginToken.text !== "EOF" &&
+                    /[^{}[\]]/.test(beginToken.text)) {
+                this.consume();
+                return beginToken;
+            }
         }
         const outerMode = this.mode;
         this.mode = "text";
-        this.expect(optional ? "[" : "{");
+        this.expect(groupBegin);
         let str = "";
-        const firstToken = this.nextToken;
+        const firstToken = this.fetch();
+        let nested = 0; // allow nested braces in raw string group
         let lastToken = firstToken;
-        while (this.nextToken.text !== (optional ? "]" : "}")) {
-            if (this.nextToken.text === "EOF") {
-                throw new ParseError(
-                    "Unexpected end of input in " + modeName,
-                    firstToken.range(this.nextToken, str));
+        let nextToken;
+        while ((nextToken = this.fetch()).text !== groupEnd ||
+               (raw && nested > 0)) {
+            switch (nextToken.text) {
+                case "EOF":
+                    throw new ParseError(
+                        "Unexpected end of input in " + modeName,
+                        firstToken.range(lastToken, str));
+                case groupBegin:
+                    nested++;
+                    break;
+                case groupEnd:
+                    nested--;
+                    break;
             }
-            lastToken = this.nextToken;
+            lastToken = nextToken;
             str += lastToken.text;
             this.consume();
         }
+        this.expect(groupEnd);
         this.mode = outerMode;
-        this.expect(optional ? "]" : "}");
         return firstToken.range(lastToken, str);
     }
 
@@ -717,12 +651,13 @@ export default class Parser {
     ): Token {
         const outerMode = this.mode;
         this.mode = "text";
-        const firstToken = this.nextToken;
+        const firstToken = this.fetch();
         let lastToken = firstToken;
         let str = "";
-        while (this.nextToken.text !== "EOF"
-            && regex.test(str + this.nextToken.text)) {
-            lastToken = this.nextToken;
+        let nextToken;
+        while ((nextToken = this.fetch()).text !== "EOF" &&
+               regex.test(str + nextToken.text)) {
+            lastToken = nextToken;
             str += lastToken.text;
             this.consume();
         }
@@ -738,7 +673,7 @@ export default class Parser {
     /**
      * Parses a color description.
      */
-    parseColorGroup(optional: boolean): ?ParsedArg {
+    parseColorGroup(optional: boolean): ?ParseNode<"color-token"> {
         const res = this.parseStringGroup("color", optional);
         if (!res) {
             return null;
@@ -754,20 +689,20 @@ export default class Parser {
             // Predefined color names are all missed by this RegEx pattern.
             color = "#" + color;
         }
-        return newArgument({
+        return {
             type: "color-token",
             mode: this.mode,
             color,
-        }, res);
+        };
     }
 
     /**
      * Parses a size specification, consisting of magnitude and unit.
      */
-    parseSizeGroup(optional: boolean): ?ParsedArg {
+    parseSizeGroup(optional: boolean): ?ParseNode<"size"> {
         let res;
         let isBlank = false;
-        if (!optional && this.nextToken.text !== "{") {
+        if (!optional && this.fetch().text !== "{") {
             res = this.parseRegexGroup(
                 /^[-+]? *(?:$|\d+|\d+\.\d*|\.\d*) *[a-z]{0,2} *$/, "size");
         } else {
@@ -794,64 +729,120 @@ export default class Parser {
         if (!validUnit(data)) {
             throw new ParseError("Invalid unit: '" + data.unit + "'", res);
         }
-        return newArgument({
+        return {
             type: "size",
             mode: this.mode,
             value: data,
             isBlank,
-        }, res);
+        };
+    }
+
+    /**
+     * Parses an URL, checking escaped letters and allowed protocols,
+     * and setting the catcode of % as an active character (as in \hyperref).
+     */
+    parseUrlGroup(optional: boolean, consumeSpaces: boolean): ?ParseNode<"url"> {
+        this.gullet.lexer.setCatcode("%", 13); // active character
+        const res = this.parseStringGroup("url", optional, true); // get raw string
+        this.gullet.lexer.setCatcode("%", 14); // comment character
+        if (!res) {
+            return null;
+        }
+        // hyperref package allows backslashes alone in href, but doesn't
+        // generate valid links in such cases; we interpret this as
+        // "undefined" behaviour, and keep them as-is. Some browser will
+        // replace backslashes with forward slashes.
+        const url = res.text.replace(/\\([#$%&~_^{}])/g, '$1');
+        return {
+            type: "url",
+            mode: this.mode,
+            url,
+        };
     }
 
     /**
      * If `optional` is false or absent, this parses an ordinary group,
      * which is either a single nucleus (like "x") or an expression
-     * in braces (like "{x+y}").
+     * in braces (like "{x+y}") or an implicit group, a group that starts
+     * at the current position, and ends right before a higher explicit
+     * group ends, or at EOF.
      * If `optional` is true, it parses either a bracket-delimited expression
      * (like "[x+y]") or returns null to indicate the absence of a
      * bracket-enclosed group.
      * If `mode` is present, switches to that mode while parsing the group,
      * and switches back after.
      */
-    parseGroup(optional?: boolean, mode?: Mode): ?ParsedFuncOrArg {
+    parseGroup(
+        name: string, // For error reporting.
+        optional?: boolean,
+        greediness?: ?number,
+        breakOnTokenText?: BreakToken,
+        mode?: Mode,
+        consumeSpaces?: boolean,
+    ): ?AnyParseNode {
+        // Switch to specified mode
         const outerMode = this.mode;
-        const firstToken = this.nextToken;
-        // Try to parse an open brace
-        if (this.nextToken.text === (optional ? "[" : "{")) {
-            // Switch to specified mode before we expand symbol after brace
-            if (mode) {
-                this.switchMode(mode);
-            }
+        if (mode) {
+            this.switchMode(mode);
+        }
+        // Consume spaces if requested, crucially *after* we switch modes,
+        // so that the next non-space token is parsed in the correct mode.
+        if (consumeSpaces) {
+            this.consumeSpaces();
+        }
+        // Get first token
+        const firstToken = this.fetch();
+        const text = firstToken.text;
+
+        let result;
+        // Try to parse an open brace or \begingroup
+        if (optional ? text === "["  : text === "{" || text === "\\begingroup") {
+            this.consume();
+            const groupEnd = Parser.endOfGroup[text];
             // Start a new group namespace
             this.gullet.beginGroup();
             // If we get a brace, parse an expression
-            this.consume();
-            const expression = this.parseExpression(false, optional ? "]" : "}");
-            const lastToken = this.nextToken;
-            // Switch mode back before consuming symbol after close brace
-            if (mode) {
-                this.switchMode(outerMode);
-            }
-            // End group namespace before consuming symbol after close brace
+            const expression = this.parseExpression(false, groupEnd);
+            const lastToken = this.fetch();
+            // Check that we got a matching closing brace
+            this.expect(groupEnd);
+            // End group namespace
             this.gullet.endGroup();
-            // Make sure we get a close brace
-            this.expect(optional ? "]" : "}");
-            return newArgument({
+            result = {
                 type: "ordgroup",
                 mode: this.mode,
                 loc: SourceLocation.range(firstToken, lastToken),
                 body: expression,
-            }, firstToken.range(lastToken, firstToken.text));
+                // A group formed by \begingroup...\endgroup is a semi-simple group
+                // which doesn't affect spacing in math mode, i.e., is transparent.
+                // https://tex.stackexchange.com/questions/1930/when-should-one-
+                // use-begingroup-instead-of-bgroup
+                semisimple: text === "\\begingroup" || undefined,
+            };
+        } else if (optional) {
+            // Return nothing for an optional group
+            result = null;
         } else {
-            // Otherwise, just return a nucleus, or nothing for an optional group
-            if (mode) {
-                this.switchMode(mode);
+            // If there exists a function with this name, parse the function.
+            // Otherwise, just return a nucleus
+            result = this.parseFunction(breakOnTokenText, name, greediness) ||
+                this.parseSymbol();
+            if (result == null && text[0] === "\\" &&
+                    !implicitCommands.hasOwnProperty(text)) {
+                if (this.settings.throwOnError) {
+                    throw new ParseError(
+                        "Undefined control sequence: " + text, firstToken);
+                }
+                result = this.formatUnsupportedCmd(text);
+                this.consume();
             }
-            const result = optional ? null : this.parseSymbol();
-            if (mode) {
-                this.switchMode(outerMode);
-            }
-            return result;
         }
+
+        // Switch mode back
+        if (mode) {
+            this.switchMode(outerMode);
+        }
+        return result;
     }
 
     /**
@@ -900,11 +891,11 @@ export default class Parser {
     }
 
     /**
-     * Parse a single symbol out of the string. Here, we handle both the functions
-     * we have defined, as well as the single character symbols
+     * Parse a single symbol out of the string. Here, we handle single character
+     * symbols and special functions like \verb.
      */
-    parseSymbol(): ?ParsedFuncOrArg {
-        const nucleus = this.nextToken;
+    parseSymbol(): ?AnyParseNode {
+        const nucleus = this.fetch();
         let text = nucleus.text;
 
         if (functions[text]) {
@@ -981,12 +972,12 @@ export default class Parser {
                     please report what input caused this bug`);
             }
             arg = arg.slice(1, -1);  // remove first and last char
-            return newArgument({
+            return {
                 type: "verb",
                 mode: "text",
                 body: arg,
                 star,
-            }, nucleus);
+            };
         }
         // At this point, we should have a symbol, possibly with accents.
         // First expand any accented base symbol according to unicodeSymbols.
@@ -1054,9 +1045,16 @@ export default class Parser {
                         nucleus);
                 }
             }
+            // All nonmathematical Unicode characters are rendered as if they
+            // are in text mode (wrapped in \text) because that's what it
+            // takes to render them in LaTeX.  Setting `mode: this.mode` is
+            // another natural choice (the user requested math mode), but
+            // this makes it more difficult for getCharacterMetrics() to
+            // distinguish Unicode characters without metrics and those for
+            // which we want to simulate the letter M.
             symbol = {
                 type: "textord",
-                mode: this.mode,
+                mode: "text",
                 loc: SourceLocation.range(nucleus),
                 text,
             };
@@ -1088,6 +1086,6 @@ export default class Parser {
                 };
             }
         }
-        return newArgument(symbol, nucleus);
+        return symbol;
     }
 }

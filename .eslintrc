@@ -75,7 +75,13 @@
     "env": {
         "es6": true,
         "node": true,
-        "browser": true
+        "browser": true,
+        "jest": true
+    },
+    "settings": {
+        "react": {
+            "version": "16.8"
+        }
     },
     "overrides": [{
         "files": ["katex.js", "src/**/*.js", "contrib/**/*.js"],
@@ -88,7 +94,8 @@
             }]
         },
         "env": {
-            "node": false
+            "node": false,
+            "jest": false
         }
     }],
     "root": true

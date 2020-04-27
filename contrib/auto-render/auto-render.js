@@ -19,6 +19,13 @@ const splitWithDelimiters = function(text, delimiters) {
  */
 const renderMathInText = function(text, optionsCopy) {
     const data = splitWithDelimiters(text, optionsCopy.delimiters);
+    if (data.length === 1 && data[0].type === 'text') {
+        // There is no formula in the text.
+        // Let's return null which means there is no need to replace
+        // the current text node with a new one.
+        return null;
+    }
+
     const fragment = document.createDocumentFragment();
 
     for (let i = 0; i < data.length; i++) {
@@ -26,11 +33,14 @@ const renderMathInText = function(text, optionsCopy) {
             fragment.appendChild(document.createTextNode(data[i].data));
         } else {
             const span = document.createElement("span");
-            const math = data[i].data;
+            let math = data[i].data;
             // Override any display mode defined in the settings with that
             // defined by the text itself
             optionsCopy.displayMode = data[i].display;
             try {
+                if (optionsCopy.preProcess) {
+                    math = optionsCopy.preProcess(math);
+                }
                 katex.render(math, span, optionsCopy);
             } catch (e) {
                 if (!(e instanceof katex.ParseError)) {
@@ -57,8 +67,10 @@ const renderElem = function(elem, optionsCopy) {
         if (childNode.nodeType === 3) {
             // Text node
             const frag = renderMathInText(childNode.textContent, optionsCopy);
-            i += frag.childNodes.length - 1;
-            elem.replaceChild(frag, childNode);
+            if (frag) {
+                i += frag.childNodes.length - 1;
+                elem.replaceChild(frag, childNode);
+            }
         } else if (childNode.nodeType === 1) {
             // Element node
             const className = ' ' + childNode.className + ' ';
@@ -103,7 +115,7 @@ const renderMathInElement = function(elem, options) {
         {left: "\\[", right: "\\]", display: true},
     ];
     optionsCopy.ignoredTags = optionsCopy.ignoredTags || [
-        "script", "noscript", "style", "textarea", "pre", "code",
+        "script", "noscript", "style", "textarea", "pre", "code", "option",
     ];
     optionsCopy.ignoredClasses = optionsCopy.ignoredClasses || [];
     optionsCopy.errorCallback = optionsCopy.errorCallback || console.error;
