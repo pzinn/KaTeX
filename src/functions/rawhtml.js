@@ -18,8 +18,8 @@ defineFunction({
     handler: (context, args) => {
         return {
             type: "rawhtml",
-	    height: args[1].result.value.number, // eww
-	    depth: args[2].result.value.number,
+	    height: args[1].value.number, // eww
+	    depth: args[2].value.number,
             body: args[0].url,
         };
     },
