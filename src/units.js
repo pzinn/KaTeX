@@ -35,6 +35,7 @@ const relativeUnit = {
     "ex": true,
     "em": true,
     "mu": true,
+    "ce": true
 };
 
 export type Measurement = {| number: number, unit: string |};
@@ -66,6 +67,9 @@ export const calculateSize = function(
     } else if (sizeValue.unit === "mu") {
         // `mu` units scale with scriptstyle/scriptscriptstyle.
         scale = options.fontMetrics().cssEmPerMu;
+    } else if (sizeValue.unit === "ce") {
+        // `ce` = true css em = scales properly with font size
+        scale = 1;
     } else {
         // Other relative units always refer to the *textstyle* font
         // in the current size.
