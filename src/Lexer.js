@@ -44,10 +44,6 @@ const controlWordWhitespaceRegex = new RegExp(
 const combiningDiacriticalMarkString = "[\u0300-\u036f]";
 export const combiningDiacriticalMarksEndRegex =
     new RegExp(`${combiningDiacriticalMarkString}+$`);
-const urlFunctionRegexString = "(\\\\href|\\\\url|\\\\rawhtml)" +
-    `(?:${spaceRegexString}*\\{((?:[^{}\\\\]|\\\\[^]|{[^{}]*})*)\\}` +
-    `|${spaceRegexString}+([^{}])` +
-    `|${spaceRegexString}*([^{}a-zA-Z]))`;
 const tokenRegexString = `(${spaceRegexString}+)|` +  // whitespace
     "([!-\\[\\]-\u2027\u202A-\uD7FF\uF900-\uFFFF]" +  // single codepoint
     `${combiningDiacriticalMarkString}*` +            // ...plus accents

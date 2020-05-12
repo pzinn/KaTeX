@@ -48,7 +48,7 @@ export const validUnit = function(unit: string | Measurement): boolean {
     if (typeof unit !== "string") {
         unit = unit.unit;
     }
-    return (unit in ptPerUnit || unit in relativeUnit || unit === "ex");
+    return (unit in ptPerUnit || unit in relativeUnit);
 };
 
 /*

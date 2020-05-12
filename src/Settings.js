@@ -113,9 +113,8 @@ export default class Settings {
         this.strict = utils.deflt(options.strict, "warn");
         this.trust = utils.deflt(options.trust, false);
         this.maxSize = Math.max(0, utils.deflt(options.maxSize, Infinity));
-        this.maxExpand = Math.max(0, utils.deflt(options.maxExpand, 10000));
-        this.allowedProtocols = utils.deflt(options.allowedProtocols,
-            ["http", "https", "mailto", "_relative"]);
+        this.maxExpand = Math.max(0, utils.deflt(options.maxExpand, 1000));
+        this.globalGroup = utils.deflt(options.globalGroup, false);
     }
 
     /**

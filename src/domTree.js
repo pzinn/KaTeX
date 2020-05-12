@@ -475,28 +475,6 @@ export class SymbolNode implements HtmlDomNode {
     }
 }
 
-export class rawhtml implements HtmlDomNode {
-    constructor(height: number, depth: number, val: string) {
-	this.val = val;
-        this.children = [];
-	this.classes = [ "mspace" ];
-        this.height = height;
-        this.depth = depth;
-    }
-    hasClass(className: string): boolean {
-        return utils.contains(this.classes, className);
-    }
-    toNode(): HTMLElement {
-	const span=document.createElement("span");
-	span.innerHTML=this.val;
-	return span; // not quite right but what to do?
-    }
-    toMarkup(): string {
-//		return "<span>"+this.val+"</span>";
-	return this.val; // !!!
-    }
-}
-
 /**
  * SVG nodes are used to render stretchy wide elements.
  */
@@ -635,4 +613,3 @@ export function assertSpan(
         throw new Error(`Expected span<HtmlDomNode> but got ${String(group)}.`);
     }
 }
-
