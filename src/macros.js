@@ -855,6 +855,8 @@ defineMacro("\\varsubsetneq", "\\html@mathml{\\@varsubsetneq}{⊊}");
 defineMacro("\\varsubsetneqq", "\\html@mathml{\\@varsubsetneqq}{⫋}");
 defineMacro("\\varsupsetneq", "\\html@mathml{\\@varsupsetneq}{⊋}");
 defineMacro("\\varsupsetneqq", "\\html@mathml{\\@varsupsetneqq}{⫌}");
+defineMacro("\\imath", "\\html@mathml{\\@imath}{\u0131}");
+defineMacro("\\jmath", "\\html@mathml{\\@jmath}{\u0237}");
 
 //////////////////////////////////////////////////////////////////////
 // stmaryrd and semantic
@@ -884,6 +886,14 @@ defineMacro("\u2984", "\\rBrace"); // blackboard bold }
 
 // TODO: Create variable sized versions of the last two items. I believe that
 // will require new font glyphs.
+
+// The stmaryrd function `\minuso` provides a "Plimsoll" symbol that
+// superimposes the characters \circ and \mathminus. Used in chemistry.
+defineMacro("\\minuso", "\\mathbin{\\html@mathml{" +
+    "{\\mathrlap{\\mathchoice{\\kern{0.145em}}{\\kern{0.145em}}" +
+    "{\\kern{0.1015em}}{\\kern{0.0725em}}\\circ}{-}}}" +
+    "{\\char`⦵}}");
+defineMacro("⦵", "\\minuso");
 
 //////////////////////////////////////////////////////////////////////
 // texvc.sty
@@ -976,6 +986,10 @@ defineMacro("\\ket", "\\mathinner{|{#1}\\rangle}");
 defineMacro("\\braket", "\\mathinner{\\langle{#1}\\rangle}");
 defineMacro("\\Bra", "\\left\\langle#1\\right|");
 defineMacro("\\Ket", "\\left|#1\\right\\rangle");
+
+//////////////////////////////////////////////////////////////////////
+// actuarialangle.dtx
+defineMacro("\\angln", "{\\angl n}");
 
 // Custom Khan Academy colors, should be moved to an optional package
 defineMacro("\\blue", "\\textcolor{##6495ed}{#1}");

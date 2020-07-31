@@ -11,8 +11,9 @@ const path = require("path");
 const selenium = require("selenium-webdriver");
 const firefox = require("selenium-webdriver/firefox");
 
-const istanbulApi = require('istanbul-api');
 const istanbulLibCoverage = require('istanbul-lib-coverage');
+const istanbulLibReport = require('istanbul-lib-report');
+const istanbulReports = require('istanbul-reports');
 
 const webpack = require('webpack');
 const WebpackDevServer = require("webpack-dev-server");
@@ -175,7 +176,7 @@ function startServer() {
             options: {
                 plugins: [['istanbul', {
                     include: ["src/**/*.js"],
-                    exclude: ["src/unicodeMake.js"],
+                    exclude: ["src/unicodeSymbols.js"],
                 }]],
             },
         };
@@ -529,9 +530,11 @@ function takeScreenshot(key) {
             }
             if (opts.coverage) {
                 collectCoverage().then(function() {
-                    const reporter = istanbulApi.createReporter();
-                    reporter.addAll(['json', 'text', 'lcov']);
-                    reporter.write(coverageMap);
+                    const context = istanbulLibReport.createContext({coverageMap});
+                    ['json', 'text', 'lcov'].forEach(fmt => {
+                        const report = istanbulReports.create(fmt);
+                        report.execute(context);
+                    });
                     done();
                 });
                 return;

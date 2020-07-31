@@ -1,8 +1,4 @@
 /* eslint max-len:0 */
-/* global expect: false */
-/* global it: false */
-/* global describe: false */
-/* global beforeAll: false */
 
 import buildMathML from "../src/buildMathML";
 import buildTree from "../src/buildTree";
@@ -1737,9 +1733,9 @@ describe("An HTML font tree-builder", function() {
         expect(markup).toContain("<span class=\"mord\">T</span>");
     });
 
-    it("should render \\textbf{R} with the correct font", function() {
-        const markup = katex.renderToString(r`\textbf{R}`);
-        expect(markup).toContain("<span class=\"mord textbf\">R</span>");
+    it("should render \\textbf{R } with the correct font", function() {
+        const markup = katex.renderToString(r`\textbf{R }`);
+        expect(markup).toContain("<span class=\"mord textbf\">R\u00a0</span>");
     });
 
     it("should render \\textmd{R} with the correct font", function() {
@@ -1837,7 +1833,7 @@ describe("A MathML font tree-builder", function() {
         expect(markup).toContain("<mn>2</mn>");
         expect(markup).toContain("<mi>\u03c9</mi>");   // \omega
         expect(markup).toContain("<mi mathvariant=\"normal\">\u03A9</mi>");   // \Omega
-        expect(markup).toContain("<mi>\u0131</mi>");   // \imath
+        expect(markup).toContain("<mi mathvariant=\"normal\">\u0131</mi>");   // \imath
         expect(markup).toContain("<mo>+</mo>");
     });
 
@@ -1863,7 +1859,7 @@ describe("A MathML font tree-builder", function() {
         expect(markup).toContain("<mn>2</mn>");
         expect(markup).toContain("<mi>\u03c9</mi>");   // \omega
         expect(markup).toContain("<mi mathvariant=\"normal\">\u03A9</mi>");   // \Omega
-        expect(markup).toContain("<mi>\u0131</mi>");   // \imath
+        expect(markup).toContain("<mi mathvariant=\"normal\">\u0131</mi>");   // \imath
         expect(markup).toContain("<mo>+</mo>");
     });
 
@@ -1889,7 +1885,7 @@ describe("A MathML font tree-builder", function() {
         expect(markup).toContain("<mn>2</mn>");
         expect(markup).toContain("<mi>\u03c9</mi>");   // \omega
         expect(markup).toContain("<mi mathvariant=\"normal\">\u03A9</mi>");   // \Omega
-        expect(markup).toContain("<mi>\u0131</mi>");   // \imath
+        expect(markup).toContain("<mi mathvariant=\"normal\">\u0131</mi>");   // \imath
         expect(markup).toContain("<mo>+</mo>");
     });
 
@@ -2465,6 +2461,24 @@ describe("A strike-through builder", function() {
     });
 });
 
+describe("A actuarial angle parser", function() {
+    it("should not fail in math mode", function() {
+        expect`a_{\angl{n}}`.toParse();
+    });
+    it("should fail in text mode", function() {
+        expect`\text{a_{\angl{n}}}`.not.toParse();
+    });
+});
+
+describe("A actuarial angle builder", function() {
+    it("should not fail", function() {
+        expect`a_{\angl{n}}`.toBuild();
+        expect`a_{\angl{n}i}`.toBuild();
+        expect`a_{\angl n}`.toBuild();
+        expect`a_\angln`.toBuild();
+    });
+});
+
 describe("A phantom parser", function() {
     it("should not fail", function() {
         expect`\phantom{x}`.toParse();
@@ -2660,6 +2674,9 @@ describe("A substack function", function() {
     it("should accommodate macros in the argument", function() {
         expect`\sum_{\substack{ 0<i<\varPi \\ 0<j<\pi }}  P(i,j)`.toBuild();
     });
+    it("should accommodate an empty argument", function() {
+        expect`\sum_{\substack{}}  P(i,j)`.toBuild();
+    });
 
 });
 
@@ -2706,6 +2723,28 @@ describe("An aligned environment", function() {
     it("should not eat the last row when its first cell is empty", function() {
         const ae = getParsed`\begin{aligned}&E_1 & (1)\\&E_2 & (2)\\&E_3 & (3)\end{aligned}`[0];
         expect(ae.body).toHaveLength(3);
+    });
+});
+
+describe("AMS environments", function() {
+    const nonStrictDisplay = new Settings({displayMode: true, strict: false});
+
+    it("should fail outside display mode", () => {
+        expect`\begin{gather}a+b\\c+d\end{gather}`.not.toParse(nonstrictSettings);
+        expect`\begin{gather*}a+b\\c+d\end{gather*}`.not.toParse(nonstrictSettings);
+        expect`\begin{align}a&=b+c\\d+e&=f\end{align}`.not.toParse(nonstrictSettings);
+        expect`\begin{align*}a&=b+c\\d+e&=f\end{align*}`.not.toParse(nonstrictSettings);
+        expect`\begin{alignat}{2}10&x+ &3&y = 2\\3&x+&13&y = 4\end{alignat}`.not.toParse(nonstrictSettings);
+        expect`\begin{alignat*}{2}10&x+ &3&y = 2\\3&x+&13&y = 4\end{alignat*}`.not.toParse(nonstrictSettings);
+    });
+
+    it("should build if in non-strict display mode", () => {
+        expect`\begin{gather}a+b\\c+d\end{gather}`.toBuild(nonStrictDisplay);
+        expect`\begin{gather*}a+b\\c+d\end{gather*}`.toBuild(nonStrictDisplay);
+        expect`\begin{align}a&=b+c\\d+e&=f\end{align}`.toBuild(nonStrictDisplay);
+        expect`\begin{align*}a&=b+c\\d+e&=f\end{align*}`.toBuild(nonStrictDisplay);
+        expect`\begin{alignat}{2}10&x+ &3&y = 2\\3&x+&13&y = 4\end{alignat}`.toBuild(nonStrictDisplay);
+        expect`\begin{alignat*}{2}10&x+ &3&y = 2\\3&x+&13&y = 4\end{alignat*}`.toBuild(nonStrictDisplay);
     });
 });
 
@@ -3555,6 +3594,11 @@ describe("Unicode", function() {
         expect`∈∋∝∼∽≂≃≅≈≊≍≎≏≐≑≒≓≖≗≜≡≤≥≦≧≪≫≬≳≷≺≻≼≽≾≿∴∵∣≔≕⩴⋘⋙⟂⊨∌`.toBuild(strictSettings);
     });
 
+    it("should parse relations", function() {
+        // These characters are not in the KaTeX fonts. So they build with an error message.
+        expect`⊶⊷`.toParse();
+    });
+
     it("should build big operators", function() {
         expect`∏∐∑∫∬∭∮⋀⋁⋂⋃⨀⨁⨂⨄⨆`.toBuild(strictSettings);
     });
@@ -3723,6 +3767,10 @@ describe("Symbols", function() {
 
     it("should parse spacing functions in math or text mode", () => {
         expect`A\;B\,C\nobreakspace \text{A\;B\,C\nobreakspace}`.toBuild(strictSettings);
+    });
+
+    it("should build \\minuso", () => {
+        expect`\\minuso`.toBuild(strictSettings);
     });
 
     it("should render ligature commands like their unicode characters", () => {

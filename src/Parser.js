@@ -5,13 +5,16 @@ import MacroExpander, {implicitCommands} from "./MacroExpander";
 import symbols, {ATOMS, extraLatin} from "./symbols";
 import {validUnit} from "./units";
 import {supportedCodepoint} from "./unicodeScripts";
-import unicodeAccents from "./unicodeAccents";
-import unicodeSymbols from "./unicodeSymbols";
 import ParseError from "./ParseError";
 import {combiningDiacriticalMarksEndRegex} from "./Lexer";
 import Settings from "./Settings";
 import SourceLocation from "./SourceLocation";
 import {Token} from "./Token";
+
+// Pre-evaluate both modules as unicodeSymbols require String.normalize()
+import unicodeAccents from /*preval*/ "./unicodeAccents";
+import unicodeSymbols from /*preval*/ "./unicodeSymbols";
+
 import type {ParseNode, AnyParseNode, SymbolParseNode, UnsupportedCmdParseNode}
     from "./parseNode";
 import type {Atom, Group} from "./symbols";
@@ -972,6 +975,7 @@ export default class Parser {
                     text,
                 };
             }
+            // $FlowFixMe
             symbol = s;
         } else if (text.charCodeAt(0) >= 0x80) { // no symbol for e.g. ^
             if (this.settings.strict) {
@@ -1022,10 +1026,12 @@ export default class Parser {
                     label: command,
                     isStretchy: false,
                     isShifty: true,
+                    // $FlowFixMe
                     base: symbol,
                 };
             }
         }
+        // $FlowFixMe
         return symbol;
     }
 }
