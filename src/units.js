@@ -35,7 +35,7 @@ const relativeUnit = {
     "ex": true,
     "em": true,
     "mu": true,
-    "ce": true
+    "ce": true,
 };
 
 export type Measurement = {| number: number, unit: string |};
