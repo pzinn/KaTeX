@@ -496,7 +496,7 @@ defineSymbol(math, main, textord, "\u03a6", "\\Phi", true);
 defineSymbol(math, main, textord, "\u03a7", "\\Chi", true);
 defineSymbol(math, main, textord, "\u03a8", "\\Psi", true);
 defineSymbol(math, main, textord, "\u03a9", "\\Omega", true);
-defineSymbol(math, main, textord, "\u00ac", "\\neg");
+defineSymbol(math, main, textord, "\u00ac", "\\neg", true);
 defineSymbol(math, main, textord, "\u00ac", "\\lnot");
 defineSymbol(math, main, textord, "\u22a4", "\\top");
 defineSymbol(math, main, textord, "\u22a5", "\\bot");
