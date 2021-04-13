@@ -136,6 +136,16 @@ const users = [
         infoLink: 'https://stackedit.io/',
     },
     {
+        caption: 'Tamasha',
+        image: 'https://github.com/kookma/TW-Tamasha/raw/main/docs/tamasha.png',
+        infoLink: 'https://kookma.github.io/TW-Tamasha/',
+    },
+    {
+        caption: 'TiddlyWiki',
+        image: '/img/tiddlywiki_logo.svg',
+        infoLink: 'https://tiddlywiki.com/',
+    },
+    {
         caption: 'Tutti Quanti Shelf',
         image: 'https://raw.githubusercontent.com/tonton-pixel/tutti-quanti-shelf/master/icons/icon.png',
         infoLink: 'https://github.com/tonton-pixel/tutti-quanti-shelf/',
@@ -146,6 +156,8 @@ const users = [
         infoLink: 'https://github.com/tonton-pixel/vade-mecum-shelf/',
     },
 ];
+
+const {version} = require('../package.json');
 
 const siteConfig = {
     title: 'KaTeX',
@@ -160,6 +172,8 @@ const siteConfig = {
     headerLinks: [
         {href: '/#demo', label: 'Try'},
         {doc: 'node', label: 'Docs'},
+        // always link to the latest version page
+        {href: 'https://katex.org/versions.html', label: 'v' + version},
         {page: 'users', label: 'Users'},
         {href: 'https://github.com/KaTeX/KaTeX', label: 'GitHub'},
         {search: true},
@@ -206,7 +220,7 @@ const siteConfig = {
         apiKey: '46ecd80046d78d4e5d9a5c06f559dfaa',
         indexName: 'katex',
         algoliaOptions: {
-            facetFilters: ['language:LANGUAGE', 'version:VERSION'],
+            facetFilters: ['language:LANGUAGE'],
         },
     },
 
