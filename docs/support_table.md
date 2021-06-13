@@ -6,7 +6,7 @@ This is a list of TeX functions, sorted alphabetically. This list includes funct
 
 If you know the shape of a character, but not its name, [Detexify](http://detexify.kirelabs.org/classify.html) can help.
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.2/dist/katex.min.css" integrity="sha384-Cqd8ihRLum0CCg8rz0hYKPoLZ3uw+gES2rXQXycqnL5pgVQIflxAUDS7ZSjITLb5" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" integrity="sha384-Um5gpz1odJg5Z4HAmzPtgZKdTBHZdw8S29IecapCSB31ligYPhHQZMIlWLYQGVoc" crossorigin="anonymous">
 <style>
 table tr,
 table td {
@@ -801,6 +801,7 @@ use `\ce` instead|
 |\ominus|$\ominus$||
 |\operatorname|$\operatorname{asin} x$|`\operatorname{asin} x`|
 |\operatorname\*|$\operatorname*{asin}\limits_y x$|`\operatorname*{asin}\limits_y x`|
+|\operatornamewithlimits|$\operatornamewithlimits{asin}\limits_y x$|`\operatornamewithlimits{asin}\limits_y x`|
 |\oplus|$\oplus$||
 |\or|<span style="color:firebrick;">Not supported</span>||
 |\origof|$\origof$||
