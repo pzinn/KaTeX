@@ -6,7 +6,7 @@ This is a list of TeX functions, sorted alphabetically. This list includes funct
 
 If you know the shape of a character, but not its name, [Detexify](http://detexify.kirelabs.org/classify.html) can help.
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.18/dist/katex.min.css" integrity="sha384-zTROYFVGOfTw7JV7KUu8udsvW2fx4lWOsCEDqhBreBwlHI4ioVRtmIvEThzJHGET" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css" integrity="sha384-R4558gYOUz8mP9YWpZJjofhk+zx0AS11p36HnD2ZKj/6JR5z27gSSULCNHIRReVs" crossorigin="anonymous">
 <style>
 table tr,
 table td {
@@ -219,7 +219,7 @@ table td {
 |\cdot|$\cdot$||
 |\cdotp|$\cdotp$||
 |\cdots|$\cdots$||
-|\ce |${\mathrm{C}{\vphantom{X}}_{\smash[t]{6}}\mathrm{H}{\vphantom{X}}_{\smash[t]{5}}{-}\mathrm{CHO}}$|`\ce{C6H5-CHO}` Requires an [extension](https://github.com/KaTeX/KaTeX/tree/master/contrib/mhchem/)|
+|\ce |${\mathrm{C}{\vphantom{X}}_{\smash[t]{6}}\mathrm{H}{\vphantom{X}}_{\smash[t]{5}}{-}\mathrm{CHO}}$|`\ce{C6H5-CHO}` Requires an [extension](https://github.com/KaTeX/KaTeX/tree/main/contrib/mhchem/)|
 |\cee|<span style="color:firebrick;">Not supported</span>|Deprecated by mhchem
 |\centerdot|$a\centerdot b$|`a\centerdot b`|
 |\cf|<span style="color:firebrick;">Not supported</span>|Deprecated by mhchem;
@@ -748,10 +748,11 @@ use `\ce` instead|
 |\nobreakspace|$a\nobreakspace b$|`a\nobreakspace b`|
 |\noexpand|||
 |\nolimits|$\lim\nolimits_x$|`\lim\nolimits_x`|
+|\nonumber|$$\begin{align}a&=b+c\nonumber\\d+e&=f\end{align}$$|`\begin{align}`<br>&nbsp;&nbsp;&nbsp;`a&=b+c \nonumber\\`<br>&nbsp;&nbsp;&nbsp;`d+e&=f`<br>`\end{align}`|
 |\normalfont|<span style="color:firebrick;">Not supported</span>||
 |\normalsize|$\normalsize normalsize$|`\normalsize normalsize`|
 |\not|$\not =$|`\not =`|
-|\notag|<span style="color:firebrick;">Not supported</span>||
+|\notag|$$\begin{align}a&=b+c\notag\\d+e&=f\end{align}$$|`\begin{align}`<br>&nbsp;&nbsp;&nbsp;`a&=b+c \notag\\`<br>&nbsp;&nbsp;&nbsp;`d+e&=f`<br>`\end{align}`|
 |\notin|$\notin$||
 |\notni|$\notni$||
 |\nparallel|$\nparallel$||
@@ -868,7 +869,7 @@ use `\ce` instead|
 |\providecommand|$\providecommand\greet{\text{Hello}} \greet$|`\providecommand\greet{\text{Hello}} \greet`|
 |\psi|$\psi$||
 |\Psi|$\Psi$||
-|\pu |${123~\mathchoice{\textstyle\frac{\mathrm{kJ}}{\mathrm{mol}}}{\frac{\mathrm{kJ}}{\mathrm{mol}}}{\frac{\mathrm{kJ}}{\mathrm{mol}}}{\frac{\mathrm{kJ}}{\mathrm{mol}}}}$|`\pu{123 kJ//mol}` Requires an [extension](https://github.com/KaTeX/KaTeX/tree/master/contrib/mhchem/)|
+|\pu |${123~\mathchoice{\textstyle\frac{\mathrm{kJ}}{\mathrm{mol}}}{\frac{\mathrm{kJ}}{\mathrm{mol}}}{\frac{\mathrm{kJ}}{\mathrm{mol}}}{\frac{\mathrm{kJ}}{\mathrm{mol}}}}$|`\pu{123 kJ//mol}` Requires an [extension](https://github.com/KaTeX/KaTeX/tree/main/contrib/mhchem/)|
 
 ## QR
 

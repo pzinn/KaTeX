@@ -2,7 +2,7 @@ name: Fonts
 
 on:
   pull_request_target:
-    branches: [ master ]
+    branches: [ main ]
     types: [ labeled ] # 'build fonts' label
 
 jobs:
@@ -92,18 +92,15 @@ jobs:
     - uses: actions/checkout@v2
       with:
         ref: ${{ format('refs/pull/{0}/merge', github.event.pull_request.number) }}
-        fetch-depth: 0
         persist-credentials: false
 
     - name: Build fonts
       run: |
-        export SOURCE_DATE_EPOCH=$(git log -1 --format=%ct -- src/fonts)
         make -C src/fonts all
         rm -f fonts/*.*
         cp src/fonts/ttf/*.ttf fonts
         cp src/fonts/woff/*.woff fonts
         cp src/fonts/woff2/*.woff2 fonts
-        echo $SOURCE_DATE_EPOCH > fonts/VERSION
 
     - name: Build metrics
       run: ./dockers/fonts/buildMetrics.sh

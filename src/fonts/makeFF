@@ -1441,6 +1441,7 @@ $extra{'Main-Regular'} = {
     'Select(0u3D)','Copy()',
     'Select(0u2245)',
     'PasteWithOffset(0,-111)',
+    'SetWidth(778)',
   ],
 
   bowtie => [
@@ -1737,6 +1738,7 @@ $extra{'Main-Bold'} = {
     'Select(0u3D)','Copy()',
     'Select(0u2245)',
     'PasteWithOffset(0,-136)',
+    'SetWidth(894)',
   ],
 
   bowtie => [
