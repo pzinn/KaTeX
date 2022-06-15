@@ -4,9 +4,9 @@ title: Support Table
 ---
 This is a list of TeX functions, sorted alphabetically. This list includes functions that KaTeX supports and some that it doesn't support. There is a similar page, with functions [sorted by type](supported.md).
 
-If you know the shape of a character, but not its name, [Detexify](http://detexify.kirelabs.org/classify.html) can help.
+If you know the shape of a character, but not its name, [Detexify](https://detexify.kirelabs.org/classify.html) can help.
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/katex.min.css" integrity="sha384-KiWOvVjnN8qwAZbuQyWDIbfCLFhLXNETzBQjA/92pIowpC0d2O3nppDGQVgwd2nB" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" integrity="sha384-Xi8rHCmBmhbuyyhbI88391ZKP2dmfnOl4rT9ZfRI7mLTdk1wblIUnrIq35nqwEvC" crossorigin="anonymous">
 <style>
 table tr,
 table td {
@@ -193,6 +193,7 @@ table td {
 |\Bra|$\Bra{\psi}$|`\Bra{\psi}`|
 |\bra|$\bra{\psi}$|`\bra{\psi}`|
 |\braket|$\braket{\phi\vert\psi}$|`\braket{\phi\vert\psi}`|
+|\Braket|$\Braket{ ϕ \| \frac{∂^2}{∂ t^2} \| ψ }$| `\Braket{ ϕ \| \frac{∂^2}{∂ t^2} \| ψ }`|
 |\brace|${n\brace k}$|`{n\brace k}`|
 |\bracevert|<span style="color:firebrick;">Not supported</span>||
 |\brack|${n\brack k}$|`{n\brack k}`|
@@ -573,7 +574,7 @@ use `\ce` instead|
 |\leftarrow|$\leftarrow$||
 |\Leftarrow|$\Leftarrow$||
 |\LeftArrow|<span style="color:firebrick;">Not supported</span>|Non standard
-|\leftarrowtail|<span style="color:firebrick;">Not supported</span>||
+|\leftarrowtail|$\leftarrowtail$||
 |\leftharpoondown|$\leftharpoondown$||
 |\leftharpoonup|$\leftharpoonup$||
 |\leftleftarrows|$\leftleftarrows$||
@@ -953,6 +954,8 @@ use `\ce` instead|
 |\searrow|$\searrow$||
 |\sec|$\sec$||
 |\sect|$\text{\sect}$|`\text{\sect}`|
+|\set|$\set{x\|x<5}$|`\set{x\|x<5}` |
+|\Set|$\Set{ x \| x<\frac 1 2 }$ | `\Set{ x \| x<\frac 1 2 }` |
 |\setlength|<span style="color:firebrick;">Not supported</span>|[Issue #687](https://github.com/KaTeX/KaTeX/issues/687)|
 |\setminus|$\setminus$||
 |\sf|$\sf AaBb123$|`\sf AaBb123`|
