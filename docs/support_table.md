@@ -6,7 +6,7 @@ This is a list of TeX functions, sorted alphabetically. This list includes funct
 
 If you know the shape of a character, but not its name, [Detexify](https://detexify.kirelabs.org/classify.html) can help.
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" integrity="sha384-Xi8rHCmBmhbuyyhbI88391ZKP2dmfnOl4rT9ZfRI7mLTdk1wblIUnrIq35nqwEvC" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.css" integrity="sha384-bYdxxUwYipFNohQlHt0bjN/LCpueqWz13HufFEV1SUatKs1cm4L6fFgCi1jT643X" crossorigin="anonymous">
 <style>
 table tr,
 table td {
@@ -15,6 +15,8 @@ table td {
 </style>
 
 ## Symbols
+
+$\gdef\VERT{|}$
 
 |Symbol/Function |  Rendered   | Source or Comment|
 |:---------------|:------------|:-----------------|
@@ -40,9 +42,9 @@ table td {
 |\\;|$a\;\;{b}$|a`\;\;{b}`|
 |_|$x_i$|`x_i`|
 |\\_|$\_$||
-|\\\`|$\text{\`{a}}$|`\text{\\'{a}}`|
+|\\\`|$\text{\`{a}}$|`\text{\'{a}}`|
 |&#060;|$<$||
-|\\=|$\text{\={a}}$|`\text{\\={a}}`|
+|\\=|$\text{\={a}}$|`\text{\={a}}`|
 | >|$>$||
 |\\>|$a\>\>{b}$|`a\>\>{b}`|
 |\[|$[$||
@@ -54,10 +56,10 @@ table td {
 |&#124;|$\vert$||
 |\\&#124;|$\Vert$||
 |~|$\text{no~no~no~breaks}$|`\text{no~no~no~breaks}`|
-|\\~|$\text{\~{a}}$|`\text{\\~{a}}`|
-|\\\\|$\begin{matrix} a & b\\ c & d\end{matrix}$|`\begin{matrix}`<br>&nbsp;&nbsp;&nbsp;`a & b \\`<br>&nbsp;&nbsp;&nbsp;`c & d`<br>`\end{matrix}`|
+|\\~|$\text{\~{a}}$|`\text{\~{a}}`|
+|\\\\ |$\begin{matrix} a & b\\ c & d\end{matrix}$|`\begin{matrix}`<br>&nbsp;&nbsp;&nbsp;`a & b \\`<br>&nbsp;&nbsp;&nbsp;`c & d`<br>`\end{matrix}`|
 |^|$x^i$|`x^i`|
-|\\^|$\text{\^{a}}$|`\text{\\^{a}}`|
+|\\^|$\text{\^{a}}$|`\text{\^{a}}`|
 
 ## A
 
@@ -192,8 +194,8 @@ table td {
 |\boxtimes|$\boxtimes$||
 |\Bra|$\Bra{\psi}$|`\Bra{\psi}`|
 |\bra|$\bra{\psi}$|`\bra{\psi}`|
-|\braket|$\braket{\phi\vert\psi}$|`\braket{\phi\vert\psi}`|
-|\Braket|$\Braket{ ϕ \| \frac{∂^2}{∂ t^2} \| ψ }$| `\Braket{ ϕ \| \frac{∂^2}{∂ t^2} \| ψ }`|
+|\braket|$\braket{\phi\VERT\psi}$|<code>\braket{\phi&#124;\psi}</code>|
+|\Braket|$\Braket{ ϕ \VERT \frac{∂^2}{∂ t^2} \VERT ψ }$| <code>\Braket{ ϕ &#124; \frac{∂^2}{∂ t^2} &#124; ψ }</code>|
 |\brace|${n\brace k}$|`{n\brace k}`|
 |\bracevert|<span style="color:firebrick;">Not supported</span>||
 |\brack|${n\brack k}$|`{n\brack k}`|
@@ -954,8 +956,8 @@ use `\ce` instead|
 |\searrow|$\searrow$||
 |\sec|$\sec$||
 |\sect|$\text{\sect}$|`\text{\sect}`|
-|\set|$\set{x\|x<5}$|`\set{x\|x<5}` |
-|\Set|$\Set{ x \| x<\frac 1 2 }$ | `\Set{ x \| x<\frac 1 2 }` |
+|\set|$\set{x\VERT x<5}$|<code>\set{x&#124;x<5}</code> |
+|\Set|$\Set{ x \VERT x<\frac 1 2 }$ | <code>\Set{ x &#124; x<\frac 1 2}</code> |
 |\setlength|<span style="color:firebrick;">Not supported</span>|[Issue #687](https://github.com/KaTeX/KaTeX/issues/687)|
 |\setminus|$\setminus$||
 |\sf|$\sf AaBb123$|`\sf AaBb123`|
