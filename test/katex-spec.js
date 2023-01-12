@@ -1266,6 +1266,7 @@ describe("A begin/end parser", function() {
 
     it("should parse an environment with hlines", function() {
         expect`\begin{matrix}\hline a&b\\ \hline c&d\end{matrix}`.toParse();
+        expect`\begin{matrix}\hline a&b\cr \hline c&d\end{matrix}`.toParse();
         expect`\begin{matrix}\hdashline a&b\\ \hdashline c&d\end{matrix}`.toParse();
     });
 
@@ -1306,6 +1307,11 @@ describe("A begin/end parser", function() {
 
     it("should not allow \\cr to scan for an optional size argument", function() {
         expect`\begin{matrix}a&b\cr[c]&d\end{matrix}`.toParse();
+    });
+
+    it("should not treat [ after space as optional argument to \\\\", function() {
+        expect`\begin{matrix}a&b\\ [c]&d\end{matrix}`.toParse();
+        expect`a\\ [b]`.toParse();
     });
 
     it("should eat a final newline", function() {
