@@ -1,6 +1,20 @@
 # Changelog
 All notable changes to this project will be documented in this file. This CHANGELOG roughly follows the guidelines from [www.keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [0.16.9](https://github.com/KaTeX/KaTeX/compare/v0.16.8...v0.16.9) (2023-10-02)
+
+
+### Features
+
+* Support bold Fraktur ([#3777](https://github.com/KaTeX/KaTeX/issues/3777)) ([240d5ae](https://github.com/KaTeX/KaTeX/commit/240d5aede915e0303929a9328745b1060e12004a))
+
+## [0.16.8](https://github.com/KaTeX/KaTeX/compare/v0.16.7...v0.16.8) (2023-06-24)
+
+
+### Features
+
+* expose error length and raw error message on ParseError ([#3820](https://github.com/KaTeX/KaTeX/issues/3820)) ([710774a](https://github.com/KaTeX/KaTeX/commit/710774aaebb38f43b1ec51c159fe9b9520c91424))
+
 ## [0.16.7](https://github.com/KaTeX/KaTeX/compare/v0.16.6...v0.16.7) (2023-04-28)
 
 
