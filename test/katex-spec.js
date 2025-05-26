@@ -280,6 +280,15 @@ describe("A subscript and superscript parser", function() {
     it("should work with Unicode (sub|super)script characters", function() {
         expect`A² + B²⁺³ + ¹²C + E₂³ + F₂₊₃`.toParseLike`A^{2} + B^{2+3} + ^{12}C + E_{2}^{3} + F_{2+3}`;
     });
+
+    it("should not fail if \\relax is in an atom", function() {
+        expect`\hskip1em\relax^2`.toParse(strictSettings);
+    });
+
+    it("should skip \\relax in super/subscripts", function() {
+        expect`x^\relax 2`.toParseLike`x^2`;
+        expect`x_\relax 2`.toParseLike`x_2`;
+    });
 });
 
 describe("A subscript and superscript tree-builder", function() {
@@ -2048,6 +2057,19 @@ describe("A MathML font tree-builder", function() {
         expect(markup).toContain("<mo>+</mo>");
     });
 
+    it("should render \\mathsfit{" + contents + "} with the correct mathvariants", function() {
+        const tex = `\\mathsfit{${contents}}`;
+        const tree = getParsed(tex);
+        const markup = buildMathML(tree, tex, defaultOptions).toMarkup();
+        expect(markup).toContain("<mi mathvariant=\"sans-serif-italic\">A</mi>");
+        expect(markup).toContain("<mi mathvariant=\"sans-serif-italic\">x</mi>");
+        expect(markup).toContain("<mn mathvariant=\"sans-serif-italic\">2</mn>");
+        expect(markup).toContain("<mi mathvariant=\"sans-serif-italic\">\u03c9</mi>"); // \omega
+        expect(markup).toContain("<mi mathvariant=\"sans-serif-italic\">\u03A9</mi>"); // \Omega
+        expect(markup).toContain("<mi mathvariant=\"sans-serif-italic\">\u0131</mi>"); // \imath
+        expect(markup).toContain("<mo>+</mo>");
+    });
+
     it("should render a combination of font and color changes", function() {
         let tex = r`\textcolor{blue}{\mathbb R}`;
         let tree = getParsed(tex);
@@ -2144,6 +2166,24 @@ describe("An HTML extension builder", function() {
     it("should render with trust and strict setting", function() {
         const built = getBuilt(html, trustNonStrictSettings);
         expect(built).toMatchSnapshot();
+    });
+
+    it("should throw Error when HTML attribute name is invalid", function() {
+        for (const char of [">", " ", "\t", "\n", "\r", "\"", "'", "/"]) {
+            try {
+                katex.renderToString(
+                    `\\htmlData{a${char}b=foo}{bar}`, trustNonStrictSettings);
+
+                // Render is expected to throw, so this should not be called.
+                expect(true).toBe(false);
+            } catch (error) {
+                expect(error).toBeInstanceOf(ParseError);
+                const message =
+                    `Invalid attribute name 'data-a${char.replace(/\s/, ' ')}b'`;
+                expect(error.message).toBe(`KaTeX parse error: ${message}`);
+                expect(error.rawMessage).toBe(message);
+            }
+        }
     });
 });
 
@@ -3343,6 +3383,12 @@ describe("A macro expander", function() {
         }}));
     });
 
+    it("should treat \\relax as empty argument", function() {
+        expect`\text{\foo\relax x}`.toParseLike(r`\text{(,x)}`, new Settings({macros: {
+            "\\foo": "(#1,#2)",
+        }}));
+    });
+
     it("should allow for space second argument (math version)", function() {
         expect`\foo\bar\bar`.toParseLike("(,)", new Settings({macros: {
             "\\foo": "(#1,#2)",
@@ -3683,17 +3729,15 @@ describe("A macro expander", function() {
         expect`\newcommand{\foo}{1}\foo\renewcommand{\foo}{2}\foo`.toParseLike`12`;
     });
 
-    it("\\providecommand (re)defines macros", () => {
+    it("\\providecommand defines but does not redefine macros", () => {
         expect`\providecommand\foo{x^2}\foo+\foo`.toParseLike`x^2+x^2`;
         expect`\providecommand{\foo}{x^2}\foo+\foo`.toParseLike`x^2+x^2`;
-        expect`\providecommand\bar{x^2}\bar+\bar`.toParseLike`x^2+x^2`;
-        expect`\providecommand{\bar}{x^2}\bar+\bar`.toParseLike`x^2+x^2`;
         expect`\newcommand{\foo}{1}\foo\providecommand{\foo}{2}\foo`
-            .toParseLike`12`;
+            .toParseLike`11`;
         expect`\providecommand{\foo}{1}\foo\renewcommand{\foo}{2}\foo`
             .toParseLike`12`;
         expect`\providecommand{\foo}{1}\foo\providecommand{\foo}{2}\foo`
-            .toParseLike`12`;
+            .toParseLike`11`;
     });
 
     it("\\newcommand is local", () => {
