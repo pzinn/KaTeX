@@ -224,7 +224,6 @@ export function parseCD(parser: Parser): ParseNode<"array"> {
         mode: "math",
         body,
         arraystretch: 1,
-        verticalAlign: "c",
         addJot: true,
         rowGaps: [null],
         cols,

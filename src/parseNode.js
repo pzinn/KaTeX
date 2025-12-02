@@ -36,7 +36,6 @@ type ParseNodeTypes = {
         addJot?: boolean,
         cols?: AlignSpec[],
         arraystretch: number,
-        verticalAlign: "t" | "b" | "c",
         body: AnyParseNode[][], // List of rows in the (2D) array.
         rowGaps: (?Measurement)[],
         hLinesBeforeRow: Array<boolean[]>,
