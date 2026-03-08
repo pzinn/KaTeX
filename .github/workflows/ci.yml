@@ -32,8 +32,8 @@ jobs:
     - name: Lint code
       run: yarn test:lint
 
-    - name: Run Flow
-      run: yarn test:flow
+    - name: Run TypeScript typecheck
+      run: yarn test:ts
       if: always()
 
     - name: Run Jest tests
@@ -42,6 +42,9 @@ jobs:
 
     - name: Build
       run: yarn build
+
+    - name: Verify built bundle
+      run: yarn test:build
 
     - uses: codecov/codecov-action@v3
       with:
