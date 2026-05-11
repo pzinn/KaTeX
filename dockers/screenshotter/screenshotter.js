@@ -129,7 +129,7 @@ function isDockerDesktop() {
     try {
         const operatingSystem = cmd("docker", "info", "-f", "{{.OperatingSystem}}");
         return /Docker Desktop/i.test(operatingSystem);
-    } catch (e) {
+    } catch {
         return false;
     }
 }
@@ -191,11 +191,12 @@ function guessDockerIPs() {
         }
         katexIP = katexIP || config[1];
         return;
-    } catch (e) {
+    } catch {
         // Apparently no boot2docker, continue
     }
-    if (!process.env.DOCKER_HOST && isDockerDesktop()) {
-        // Docker Desktop on macOS/Windows
+    if (!process.env.DOCKER_HOST &&
+        (isDockerDesktop() || process.platform === 'darwin')) {
+        // Docker Desktop on macOS/Windows, or any macOS Docker runtime
         seleniumIP = seleniumIP || "localhost";
         katexIP = katexIP || "host.docker.internal";
         return;
