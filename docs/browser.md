@@ -11,13 +11,13 @@ title: Browser
 <!-- KaTeX requires the use of the HTML5 doctype. Without it, KaTeX may not render properly -->
 <html>
   <head>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/katex.min.css" integrity="sha384-UA8juhPf75SzzAMA/4fo3yOU7sBJ0om7SCD2GHq0fZqZco6tr1UCV7nUbk9J90JM" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.min.css" integrity="sha384-WwGtaC6ywCHxA5cstpj/3+xIZvTez8dq2IcBQaXRkenHZ7FVVq1ZROtURwfbtTlG" crossorigin="anonymous">
 
     <!-- The loading of KaTeX is deferred to speed up page rendering -->
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/katex.min.js" integrity="sha384-Tt7wBxLKwSzFVRET4O4U9H6v8MNaQ/CjN2FMP4xFm0ErrFu6aNqoonRVW5W40iGI" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.min.js" integrity="sha384-a1WQdjRj162i159OYq041X6I4K8NenkrI09LlPmiHg0YOb7CR+wJOraXwK9abpnE" crossorigin="anonymous"></script>
 
     <!-- To automatically render math in text elements, include the auto-render extension: -->
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/contrib/auto-render.min.js" integrity="sha384-bjyGPfbij8/NDKJhSGZNP/khQVgtHUE5exjm4Ydllo42FwIgYsdLO2lXGmRBf5Mz" crossorigin="anonymous"
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/contrib/auto-render.min.js" integrity="sha384-bjyGPfbij8/NDKJhSGZNP/khQVgtHUE5exjm4Ydllo42FwIgYsdLO2lXGmRBf5Mz" crossorigin="anonymous"
         onload="renderMathInElement(document.body);"></script>
   </head>
   ...
@@ -29,15 +29,15 @@ If you include the `katex.js` directly, the `katex` object will be available as
 a global variable.
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/katex.css" integrity="sha384-DLNWBifkkOES5azVMtIZ7RYukF2HBwDMBcPyDl6VnXTdJKlv5aO1s6mnOLE0QUyP" crossorigin="anonymous">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/katex.js" integrity="sha384-SReR3XDzHJ+xHgprjPZ5oBp+3gHv4arv/iWnz2PGnkUH8lAYzPIIxY0C+I6F2G/o" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.css" integrity="sha384-dyEuTchRIWTUUS5esbTCpMfx+B+xfO8EoTt5SiUbKmafuP0Gilzcq4YNJuy9EkCC" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.js" integrity="sha384-H4X0CTVqduiMCy79KQw+noSKkBB6tvyQopi29LC//G1uFcl52atjOC6Ltc9br/U7" crossorigin="anonymous"></script>
 ```
 
 KaTeX also provides minified versions:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/katex.min.css" integrity="sha384-UA8juhPf75SzzAMA/4fo3yOU7sBJ0om7SCD2GHq0fZqZco6tr1UCV7nUbk9J90JM" crossorigin="anonymous">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/katex.min.js" integrity="sha384-Tt7wBxLKwSzFVRET4O4U9H6v8MNaQ/CjN2FMP4xFm0ErrFu6aNqoonRVW5W40iGI" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.min.css" integrity="sha384-WwGtaC6ywCHxA5cstpj/3+xIZvTez8dq2IcBQaXRkenHZ7FVVq1ZROtURwfbtTlG" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.min.js" integrity="sha384-a1WQdjRj162i159OYq041X6I4K8NenkrI09LlPmiHg0YOb7CR+wJOraXwK9abpnE" crossorigin="anonymous"></script>
 ```
 
 The examples above load the script [deferred using the `defer` attribute](https://developer.mozilla.org/en/HTML/Element/script#Attributes)
@@ -58,7 +58,7 @@ If you would rather use `font-display: swap` to prevent
 include `katex-swap.css` or `katex-swap.min.css`:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/katex-swap.min.css" integrity="sha384-4oq/auzzmx0i9ZQW815S9u/s+w/VYRSz/0auctaq99qhFt2YKlaMiLdXBaODJHxZ" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex-swap.min.css" integrity="sha384-/YlNbK67U4WeyjZpwGJd2C4H3Lm8gq0m47PFlrmuKj9TDQzW6HbfSbWI6gpHx2ol" crossorigin="anonymous">
 ```
 
 To prevent both FOUT and FOIT, you can prefetch KaTeX fonts.
@@ -92,38 +92,147 @@ for more detail.
 ```html
 <script type="text/javascript">
     require([
-        "https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/katex.js",
+        "https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.js",
     ], katex => {
         ...
     });
 </script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/katex.css" integrity="sha384-DLNWBifkkOES5azVMtIZ7RYukF2HBwDMBcPyDl6VnXTdJKlv5aO1s6mnOLE0QUyP" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.css" integrity="sha384-dyEuTchRIWTUUS5esbTCpMfx+B+xfO8EoTt5SiUbKmafuP0Gilzcq4YNJuy9EkCC" crossorigin="anonymous">
 ```
 
 ### ECMAScript module
 ```html
 <script type="module" type="text/javascript">
-    import katex from 'https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/katex.mjs';
+    import katex from 'https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.mjs';
     ...
 </script>
-<script nomodule defer src="https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/katex.js" integrity="sha384-SReR3XDzHJ+xHgprjPZ5oBp+3gHv4arv/iWnz2PGnkUH8lAYzPIIxY0C+I6F2G/o" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/katex.css" integrity="sha384-DLNWBifkkOES5azVMtIZ7RYukF2HBwDMBcPyDl6VnXTdJKlv5aO1s6mnOLE0QUyP" crossorigin="anonymous">
+<script nomodule defer src="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.js" integrity="sha384-H4X0CTVqduiMCy79KQw+noSKkBB6tvyQopi29LC//G1uFcl52atjOC6Ltc9br/U7" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.css" integrity="sha384-dyEuTchRIWTUUS5esbTCpMfx+B+xfO8EoTt5SiUbKmafuP0Gilzcq4YNJuy9EkCC" crossorigin="anonymous">
 ```
 
 > Use [`nomodule` attribute](https://developer.mozilla.org/en/HTML/Element/script#Attributes)
 to provide a fallback for older browsers that do not support ES modules.
-
-## Download & Host Things Yourself
-Download a [KaTeX release](https://github.com/KaTeX/KaTeX/releases),
-copy `katex.js`, `katex.css`
-(or `katex.min.js` and `katex.min.css` to use minified versions),
-and the `fonts` directory, and include or import it like above.
-
-You can also build from source. See [Building from Source](node.md#building-from-source)
-for more details.
 
 ## Bundler
 [Use Node.js package managers to install KaTeX and import it](node.md) in your
 project. Then bundle using bundlers like [webpack](https://webpack.js.org/) or
 [rollup.js](https://rollupjs.org/). Note that you have to bundle the stylesheet
 (`katex.css`) or include it manually.
+
+## Download & Host Things Yourself
+If you do not want to rely on a CDN, you can serve KaTeX from your own
+infrastructure. There are two ways to get a release:
+
+### Option 1: Pre-built release from GitHub
+
+Each release ships pre-built `katex.tar.gz` and `katex.zip` archives.
+Download one from the [KaTeX releases page](https://github.com/KaTeX/KaTeX/releases) —
+look under **Assets** for `katex.tar.gz` or `katex.zip`, *not* the
+auto-generated "Source code" download, which only contains the repo
+source tree without the built files.
+
+After extracting, you will get a `katex/` folder containing every file you need:
+
+```
+katex/
+├── README.md
+├── katex.js              # unminified UMD build
+├── katex.min.js          # minified UMD build (recommended for production)
+├── katex.mjs             # ES module build
+├── katex.css             # stylesheet (font-display: block)
+├── katex.min.css         # minified stylesheet
+├── katex-swap.css        # stylesheet variant (font-display: swap)
+├── katex-swap.min.css
+├── contrib/              # optional extensions (each shipped as .js, .min.js, and .mjs)
+│   ├── auto-render.js
+│   ├── auto-render.min.js
+│   ├── auto-render.mjs
+│   ├── copy-tex.js
+│   ├── copy-tex.min.js
+│   ├── copy-tex.mjs
+│   ├── mathtex-script-type.js
+│   ├── mathtex-script-type.min.js
+│   ├── mathtex-script-type.mjs
+│   ├── mhchem.js
+│   ├── mhchem.min.js
+│   ├── mhchem.mjs
+│   ├── render-a11y-string.js
+│   ├── render-a11y-string.min.js
+│   └── render-a11y-string.mjs
+└── fonts/                # WOFF2/WOFF/TTF font files (required)
+```
+
+### Option 2: npm
+
+```bash
+npm install katex
+# or
+yarn add katex
+# or
+pnpm add katex
+```
+
+After installing, the files you want for hosting live under
+`node_modules/katex/dist/` — same layout as the `katex/` folder above.
+
+> The npm package also ships the unbuilt TypeScript source (`node_modules/katex/src/`,
+> `node_modules/katex/contrib/`, `node_modules/katex/katex.ts`) for
+> bundler users. Do not link those from your HTML — only the files
+> under `dist/` are meant to be served as-is.
+
+### Serving the files
+
+Copy the entire folder (or just the pieces you need plus `fonts/`) into
+your web server's static directory. **The `fonts/` directory must stay
+alongside the CSS file** — `katex.css` references the fonts using
+relative URLs (e.g. `url("fonts/KaTeX_AMS-Regular.woff2")`), so moving
+or renaming `fonts/` will break math rendering.
+
+Assuming you copied `katex/` to the root of your site, the following
+HTML will load KaTeX with auto-rendering enabled:
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="/katex/katex.min.css">
+
+    <!-- The loading of KaTeX is deferred to speed up page rendering -->
+    <script defer src="/katex/katex.min.js"></script>
+
+    <!-- To automatically render math in text elements, include the auto-render extension: -->
+    <script defer src="/katex/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body);"></script>
+  </head>
+  <body>
+    ...
+  </body>
+</html>
+```
+
+Adjust the `/katex/` prefix to match wherever you placed the files. If
+you only need to render math via the JavaScript API (and not the
+auto-render extension), you can omit the `auto-render.min.js` script.
+Swap `katex.min.css`, `katex.min.js`, and `contrib/auto-render.min.js`
+for the unminified `katex.css`, `katex.js`, and `contrib/auto-render.js`
+if you prefer readable files for debugging.
+
+### Keeping your copy up to date
+
+Every release publishes the same file names at the same paths, so
+updating is a drop-in replace. To update:
+
+1. Get the new release files:
+   - **Archive:** download a fresh `katex.tar.gz` (or `katex.zip`) and
+     extract it.
+   - **npm:** run `npm install katex@latest` (or `yarn upgrade katex@latest`). The new
+     files appear in `node_modules/katex/dist/`.
+2. Replace the `katex/` directory on your web server with the new
+   files — extracted from the archive, or copied from
+   `node_modules/katex/dist/`. Keep the same folder name so existing
+   HTML keeps working.
+3. Skim the [CHANGELOG](https://github.com/KaTeX/KaTeX/blob/main/CHANGELOG.md)
+   for any breaking changes between your old version and the new one.
+
+You can also build from source. See [Building from Source](node.md#building-from-source)
+for more details.

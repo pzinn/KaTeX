@@ -8,7 +8,8 @@ import ParseError from "../ParseError";
 import {makeEm} from "../units";
 
 import type Parser from "../Parser";
-import type {ParseNode, AnyParseNode} from "../parseNode";
+import type {AnyParseNode, ParseNode} from "../types/nodes";
+import type {Slice4} from "../types";
 
 const cdArrowFunctionName: Record<string, string> = {
     ">": "\\\\cdrightarrow",
@@ -25,7 +26,13 @@ const newCell = (): ParseNode<"styling"> => {
     // The parseTree from this module must be constructed like the
     // one created by parseArray(), so an empty CD cell must
     // be a ParseNode<"styling">. And CD is always displaystyle.
-    return {type: "styling", body: [], mode: "math", style: "display"};
+    return {
+        type: "styling",
+        body: [],
+        mode: "math",
+        style: "display",
+        resetFont: true,
+    };
 };
 
 const isStartOfArrow = (node: AnyParseNode) => {
@@ -183,6 +190,7 @@ export function parseCD(parser: Parser): ParseNode<"array"> {
                     body: [arrow],
                     mode: "math",
                     style: "display", // CD is always displaystyle.
+                    resetFont: true,
                 };
                 row.push(wrappedArrow);
                 // In CD's syntax, cells are implicit. That is, everything that
@@ -240,17 +248,16 @@ export function parseCD(parser: Parser): ParseNode<"array"> {
 defineFunction({
     type: "cdlabel",
     names: ["\\\\cdleft", "\\\\cdright"],
-    props: {
-        numArgs: 1,
-    },
+    numArgs: 1,
     handler({parser, funcName}, args) {
         return {
             type: "cdlabel",
             mode: parser.mode,
-            side: funcName.slice(4),
+            side: funcName.slice(4) as Slice4<typeof funcName>,
             label: args[0],
         };
     },
+
     htmlBuilder(group, options) {
         const newOptions = options.havingStyle(options.style.sup());
         const label = wrapFragment(
@@ -284,9 +291,8 @@ defineFunction({
 defineFunction({
     type: "cdlabelparent",
     names: ["\\\\cdparent"],
-    props: {
-        numArgs: 1,
-    },
+    numArgs: 1,
+
     handler({parser}, args) {
         return {
             type: "cdlabelparent",
@@ -294,6 +300,7 @@ defineFunction({
             fragment: args[0],
         };
     },
+
     htmlBuilder(group, options) {
         // Wrap the vertical arrow and its labels.
         // The parent gets position: relative. The child gets position: absolute.

@@ -1,6 +1,140 @@
 # Changelog
 All notable changes to this project will be documented in this file. This CHANGELOG roughly follows the guidelines from [www.keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [0.19.1](https://github.com/KaTeX/KaTeX/compare/v0.19.0...v0.19.1) (2026-10-23)
+
+
+### Bug Fixes
+
+* allow percent sign in raw argument type ([#4307](https://github.com/KaTeX/KaTeX/issues/4307)) ([6971e5c](https://github.com/KaTeX/KaTeX/commit/6971e5ccf27581e768e8353d94ccc7b6f6553d4a))
+
+# [0.19.0](https://github.com/KaTeX/KaTeX/compare/v0.18.11...v0.19.0) (2026-10-01)
+
+
+### Documentation
+
+* note strict changes shipped in 0.18.11 ([#4300](https://github.com/KaTeX/KaTeX/issues/4300)) ([cbb1fce](https://github.com/KaTeX/KaTeX/commit/cbb1fce7e8facb728e735cd9c231ed28cbfaa6fa))
+
+
+### BREAKING CHANGES
+
+* Missing character metrics now reported via strict with error code symbolNotInFont, changing warning formatting, calling any strict callbacks, and producing errors in strict: "error" mode. Also, strict callbacks returning undefined or null now warn instead of ignoring the issue (and no longer typecheck); return false or "ignore" to suppress warnings.
+
+## [0.18.11](https://github.com/KaTeX/KaTeX/compare/v0.18.10...v0.18.11) (2026-10-01)
+
+
+### Features
+
+* handle character metrics warnings via `strict` ([#4243](https://github.com/KaTeX/KaTeX/issues/4243)) ([4237070](https://github.com/KaTeX/KaTeX/commit/423707055a37803acafef4c1533832273192ea0e))
+
+## [0.18.10](https://github.com/KaTeX/KaTeX/compare/v0.18.9...v0.18.10) (2026-09-30)
+
+
+### Features
+
+* make KaTeX fallback to browsr math font before Times New Roman ([#4298](https://github.com/KaTeX/KaTeX/issues/4298)) ([a477b2e](https://github.com/KaTeX/KaTeX/commit/a477b2e1c30e38e1ada785d5766b1e57211b793e))
+
+## [0.18.9](https://github.com/KaTeX/KaTeX/compare/v0.18.8...v0.18.9) (2026-09-23)
+
+
+### Features
+
+* **types:** add contrib module declarations ([#4250](https://github.com/KaTeX/KaTeX/issues/4250)) ([aafa187](https://github.com/KaTeX/KaTeX/commit/aafa1874d720a7ffc74be705b9f4f4b13d1fe758))
+
+## [0.18.8](https://github.com/KaTeX/KaTeX/compare/v0.18.7...v0.18.8) (2026-09-23)
+
+
+### Bug Fixes
+
+* **array:** preserve trailing rows in align ([#4283](https://github.com/KaTeX/KaTeX/issues/4283)) ([ddfcc29](https://github.com/KaTeX/KaTeX/commit/ddfcc29825a35194e8de7490acea20d96ca05477))
+
+## [0.18.7](https://github.com/KaTeX/KaTeX/compare/v0.18.6...v0.18.7) (2026-09-06)
+
+
+### Features
+
+* add \reflectbox and \mapsfrom support ([#4262](https://github.com/KaTeX/KaTeX/issues/4262)) ([ab509fd](https://github.com/KaTeX/KaTeX/commit/ab509fde2026a355d3c80965213c05a10bf144cb))
+
+## [0.18.6](https://github.com/KaTeX/KaTeX/compare/v0.18.5...v0.18.6) (2026-09-05)
+
+
+### Bug Fixes
+
+* **array:** preserve tags on empty final rows ([#4277](https://github.com/KaTeX/KaTeX/issues/4277)) ([02d552c](https://github.com/KaTeX/KaTeX/commit/02d552ca2198e91fb24cf32fb0a35cf7610a66aa))
+
+## [0.18.5](https://github.com/KaTeX/KaTeX/compare/v0.18.4...v0.18.5) (2026-08-31)
+
+
+### Bug Fixes
+
+* **char:** accept U+10FFFF ([#4265](https://github.com/KaTeX/KaTeX/issues/4265)) ([6805538](https://github.com/KaTeX/KaTeX/commit/680553898e23c55fa6cb66052b4b9396cbe857ce)), closes [#2549](https://github.com/KaTeX/KaTeX/issues/2549)
+
+## [0.18.4](https://github.com/KaTeX/KaTeX/compare/v0.18.3...v0.18.4) (2026-08-10)
+
+
+### Bug Fixes
+
+* **environment:** report invalid environment names as ParseError ([#4256](https://github.com/KaTeX/KaTeX/issues/4256)) ([e507f75](https://github.com/KaTeX/KaTeX/commit/e507f759f067ad3b9e279837027d4cfb2314915b)), closes [#3760](https://github.com/KaTeX/KaTeX/issues/3760) [#3760](https://github.com/KaTeX/KaTeX/issues/3760)
+
+## [0.18.3](https://github.com/KaTeX/KaTeX/compare/v0.18.2...v0.18.3) (2026-08-09)
+
+
+### Bug Fixes
+
+* allow braced arguments for delimsizing ([#4255](https://github.com/KaTeX/KaTeX/issues/4255)) ([1c973ae](https://github.com/KaTeX/KaTeX/commit/1c973ae2e2416d3943d78606c90b2a9e8e578243))
+
+## [0.18.2](https://github.com/KaTeX/KaTeX/compare/v0.18.1...v0.18.2) (2026-08-08)
+
+
+### Bug Fixes
+
+* prevent prototype pollution in settings ([#4260](https://github.com/KaTeX/KaTeX/issues/4260)) ([0adf7e7](https://github.com/KaTeX/KaTeX/commit/0adf7e77db6915d991803b29699f82b1ccf8d4f4))
+
+## [0.18.1](https://github.com/KaTeX/KaTeX/compare/v0.18.0...v0.18.1) (2026-07-19)
+
+
+### Bug Fixes
+
+* **htmlData:** allow escaped commas in \htmlData ([#4236](https://github.com/KaTeX/KaTeX/issues/4236)) ([87a2b30](https://github.com/KaTeX/KaTeX/commit/87a2b304aff601ad1c3d930d47d6833d123ad210)), closes [#4204](https://github.com/KaTeX/KaTeX/issues/4204) [#4218](https://github.com/KaTeX/KaTeX/issues/4218)
+
+# [0.18.0](https://github.com/KaTeX/KaTeX/compare/v0.17.0...v0.18.0) (2026-07-17)
+
+
+### Features
+
+* prefix css classes ([#4229](https://github.com/KaTeX/KaTeX/issues/4229)) ([6f5c44f](https://github.com/KaTeX/KaTeX/commit/6f5c44f69bae0703877a3a8d934e20c47bbbbc32))
+
+
+### BREAKING CHANGES
+
+* users who apply custom styles or have allowlists targeting KaTeX's internal classes must update their selectors.
+
+# [0.17.0](https://github.com/KaTeX/KaTeX/compare/v0.16.47...v0.17.0) (2026-05-22)
+
+
+### Performance Improvements
+
+* simplify `defineFunction` to avoid destructuring, improve typing ([#4222](https://github.com/KaTeX/KaTeX/issues/4222)) ([fb604e6](https://github.com/KaTeX/KaTeX/commit/fb604e6ba63e99809e242d37f9c8359209d55431))
+
+
+### BREAKING CHANGES
+
+* The internal API for `__defineFunction` changed: you should no longer wrap properties in `props`.
+
+## [0.16.47](https://github.com/KaTeX/KaTeX/compare/v0.16.46...v0.16.47) (2026-05-16)
+
+
+### Bug Fixes
+
+* correct size of `[` big delimiter ([#4217](https://github.com/KaTeX/KaTeX/issues/4217)) ([7ba0027](https://github.com/KaTeX/KaTeX/commit/7ba0027d2f04abddd3b215362f867ab8260b09d7)), closes [#4215](https://github.com/KaTeX/KaTeX/issues/4215)
+
+## [0.16.46](https://github.com/KaTeX/KaTeX/compare/v0.16.45...v0.16.46) (2026-05-13)
+
+
+### Bug Fixes
+
+* preserve math font in some styling commands ([#4214](https://github.com/KaTeX/KaTeX/issues/4214)) ([e9ee046](https://github.com/KaTeX/KaTeX/commit/e9ee0464ddb31da9bf9649eeb70e52236e7a974a)), closes [#4213](https://github.com/KaTeX/KaTeX/issues/4213)
+
 ## [0.16.45](https://github.com/KaTeX/KaTeX/compare/v0.16.44...v0.16.45) (2026-04-05)
 
 

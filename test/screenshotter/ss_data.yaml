@@ -124,7 +124,12 @@ DelimiterSizing: |
         a & b & c\\
         a & b & c\\
         a & b & c\\
-    \end{pmatrix}\; \Braket{ ϕ | \frac{∂^2}{∂ t^2} | ψ } \\
+    \end{pmatrix}\; \begin{bmatrix}
+        a & b & c\\
+        a & b & c\\
+        a & b & c\\
+    \end{bmatrix} \\
+    \Braket{ ϕ | \frac{∂^2}{∂ t^2} | ψ } \\
 DisplayMode:
     tex: \sum_{i=0}^\infty \frac{1}{i}
     pre: pre
@@ -240,6 +245,11 @@ LowerAccent: |
         \frac{\underrightarrow{AB}}{\underrightarrow{AB}} + \sqrt{\underrightarrow{AB}} + \left\lvert\underrightarrow{AB}\right\rvert \\
         \text{\underline{text}}
     \end{matrix}
+Mapsfrom: |
+    \begin{gathered}
+        a \mapsfrom b \quad c ↤ d \quad \mapsfrom -x \\
+        x_{a \mapsfrom b} \quad x_{y_{a \mapsfrom b}}
+    \end{gathered}
 MathAtom: a\mathrel{\mathop{=}\limits^{\blue ?}}b
 MathAtom2: \mathop{\overline{\mathrm{lim}}}\limits_{x\to\infty}f(x)
 MathChoice: |
@@ -345,6 +355,13 @@ ReactionArrows: |
         A \xrightleftarrows{} B \xrightequilibrium{} C \xleftequilibrium{} D \\
         A \xrightleftarrows{over} B \xrightequilibrium{over} C \xleftequilibrium{over} D
     \end{matrix}
+Reflectbox: |
+    \begin{gathered}
+        a + \reflectbox{abc} = b \\
+        \reflectbox{$x^2 + \frac{a}{b}$}
+        \quad \mathreflectbox{x^2 + \frac{a}{b}} \\
+        x_{\mathreflectbox{\frac{a}{b}}} \quad x_{\frac{a}{b}}
+    \end{gathered}
 RelativeUnits: |
     \begin{array}{ll}
         a\kern1emb^{a\kern1emb^{a\kern1emb}} &

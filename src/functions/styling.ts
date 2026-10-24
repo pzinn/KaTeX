@@ -23,11 +23,10 @@ defineFunction({
         "\\displaystyle", "\\textstyle", "\\scriptstyle",
         "\\scriptscriptstyle",
     ],
-    props: {
-        numArgs: 0,
-        allowedInText: true,
-        primitive: true,
-    },
+    numArgs: 0,
+    allowedInText: true,
+    primitive: true,
+
     handler({breakOnTokenText, funcName, parser}, args) {
         // parse out the implicit body
         const body = parser.parseExpression(true, breakOnTokenText);
@@ -47,16 +46,23 @@ defineFunction({
             body,
         };
     },
+
     htmlBuilder(group, options) {
         // Style changes are handled in the TeXbook on pg. 442, Rule 3.
         const newStyle = styleMap[group.style];
-        const newOptions = options.havingStyle(newStyle).withFont('');
+        let newOptions = options.havingStyle(newStyle);
+        if (group.resetFont) {
+            newOptions = newOptions.withFont('');
+        }
         return sizingGroup(group.body, newOptions, options);
     },
     mathmlBuilder(group, options) {
         // Figure out what style we're changing to.
         const newStyle = styleMap[group.style];
-        const newOptions = options.havingStyle(newStyle);
+        let newOptions = options.havingStyle(newStyle);
+        if (group.resetFont) {
+            newOptions = newOptions.withFont('');
+        }
 
         const inner = mml.buildExpression(group.body, newOptions);
 

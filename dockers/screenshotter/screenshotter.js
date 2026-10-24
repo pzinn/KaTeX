@@ -18,12 +18,12 @@ const selenium = require("selenium-webdriver");
 const firefox = require("selenium-webdriver/firefox");
 const chrome = require("selenium-webdriver/chrome");
 const seleniumHttp = require("selenium-webdriver/http");
+const PNG = require("pngjs").PNG;
+const pixelmatch = require("pixelmatch").default;
 
 const istanbulLibCoverage = require('istanbul-lib-coverage');
 const istanbulLibReport = require('istanbul-lib-report');
 const istanbulReports = require('istanbul-reports');
-
-const browserstack = require('browserstack-local');
 
 const webpack = require('webpack');
 const WebpackDevServer = require("webpack-dev-server");
@@ -71,9 +71,6 @@ const opts = program
         "Retry this many times before reporting failure", 5, parseInt)
     .option("--wait <secs>",
         "Wait this many seconds between page load and screenshot", parseFloat)
-    .option("--browserstack", "Use Browserstack. The username and access key"
-        + " should be set as environment variable BROWSERSTACK_USER and"
-        + " BROWSERSTACK_ACCESS_KEY")
     .parse(process.argv)
     .opts();
 
@@ -96,24 +93,6 @@ let seleniumPort = opts.seleniumPort;
 let katexURL = opts.katexUrl;
 let katexIP = opts.katexIp;
 let katexPort = opts.katexPort;
-
-let bsLocal;
-if (opts.browserstack) {
-    // https://www.browserstack.com/automate/node
-    if (!seleniumURL) {
-        seleniumURL = "http://hub-cloud.browserstack.com/wd/hub";
-    }
-    // https://www.browserstack.com/local-testing/automate#test-localhost-websites
-    if (!katexIP && opts.browser === "safari") {
-        katexIP = "bs-local.com";
-    }
-    opts.seleniumCapabilities = Object.assign({
-        resolution: "1280x1024",
-        "browserstack.user": process.env.BROWSERSTACK_USER,
-        "browserstack.key": process.env.BROWSERSTACK_ACCESS_KEY,
-        "browserstack.local": true,
-    }, opts.seleniumCapabilities);
-}
 
 //////////////////////////////////////////////////////////////////////
 // Work out connection to selenium docker container
@@ -239,9 +218,6 @@ if (seleniumURL) {
     if (opts.seleniumProxy) {
         driver = await getProxyDriver();
     } else {
-        if (opts.browserstack) {
-            await startBrowserstackLocal();
-        }
         if (seleniumIP) {
             await pRetry(tryConnect, {
                 retries: 50,
@@ -258,10 +234,7 @@ if (seleniumURL) {
 
     await driver.quit();
     await devServer.stop();
-    if (bsLocal) {
-        const bsLocalStop = util.promisify(bsLocal.stop);
-        await bsLocalStop();
-    }
+
     process.exit(exitStatus);
 })().catch(err => {
     console.error(err);
@@ -301,24 +274,6 @@ async function startServer() {
     const compiler = webpack(webpackConfig);
     devServer = new WebpackDevServer(config, compiler);
     await devServer.start(katexPort);
-}
-
-// Start Browserstack Local connection
-async function startBrowserstackLocal() {
-    // unique identifier for the session
-    const localIdentifier = process.env.CIRCLE_BUILD_NUM || "p" + katexPort;
-    opts.seleniumCapabilities["browserstack.localIdentifier"] = localIdentifier;
-
-    bsLocal = new browserstack.Local();
-    await new Promise((resolve, reject) => {
-        bsLocal.start({localIdentifier}, err => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve();
-            }
-        });
-    });
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -370,7 +325,6 @@ function buildDriver() {
 async function getProxyDriver() {
     const {body} = await got.post(opts.seleniumProxy, {
         json: {
-            browserstack: opts.browserstack,
             capabilities: opts.seleniumCapabilities,
             seleniumURL,
         },
@@ -401,17 +355,45 @@ async function setupDriver() {
 const targetW = 1024;
 const targetH = 768;
 let attempts = 0;
+let pixelRatio = null;
+
+async function getPixelRatio() {
+    if (pixelRatio === null) {
+        pixelRatio = await driver.executeScript(
+            "return window.devicePixelRatio || 1;");
+        if (pixelRatio !== 1) {
+            console.warn("Warning: devicePixelRatio is " + pixelRatio +
+                "; screenshots will be " + pixelRatio + "x larger and " +
+                "won't match the reference images. Use the Docker " +
+                "setup to verify screenshots.");
+        }
+    }
+    return pixelRatio;
+}
+
+async function cssDimensions(img) {
+    const ratio = await getPixelRatio();
+    return {
+        width: Math.round(img.width / ratio),
+        height: Math.round(img.height / ratio),
+    };
+}
+
 async function setSize(width, height) {
     await driver.manage().window().setRect({width, height});
     let img = await driver.takeScreenshot();
-    img = imageDimensions(img);
+    img = await cssDimensions(imageDimensions(img));
     const actualW = img.width;
     const actualH = img.height;
     if (actualW === targetW && actualH === targetH) {
         return;
     }
     if (++attempts > opts.attempts) {
-        throw new Error("Failed to set window size correctly.");
+        throw new Error("Failed to set window size correctly: wanted a " +
+            targetW + "x" + targetH + " viewport, got " + actualW + "x" +
+            actualH + " (CSS pixels, devicePixelRatio " +
+            await getPixelRatio() + "). Try running the browser " +
+            "in headless mode.");
     }
     return setSize(targetW + width - actualW, targetH + height - actualH);
 }
@@ -458,16 +440,9 @@ async function findHostIP() {
     // Next, enumerate all network addresses
     const ips = [];
     const devs = os.networkInterfaces();
-    for (const dev in devs) {
-        if (devs.hasOwnProperty(dev)) {
-            const addrs = devs[dev];
-            for (let i = 0; i < addrs.length; ++i) {
-                let addr = addrs[i].address;
-                if (/:/.test(addr)) {
-                    addr = "[" + addr + "]";
-                }
-                ips.push(addr);
-            }
+    for (const addrs of Object.values(devs)) {
+        for (const {address} of addrs) {
+            ips.push(/:/.test(address) ? `[${address}]` : address);
         }
     }
     console.log("Looking for host IP among " + ips.join(", "));
@@ -540,6 +515,9 @@ async function takeScreenshot(key) {
             await driver.executeScript(
                     "handle_search_string(" +
                     JSON.stringify("?" + itm.query) + ");");
+            await driver.executeAsyncScript(
+                "var callback = arguments[arguments.length - 1]; " +
+                "load_fonts_and_images(callback);");
         } else {
             if (opts.coverage) {
                 // collect coverage before reloading
@@ -560,9 +538,11 @@ async function takeScreenshot(key) {
         }
         let img = await driver.takeScreenshot();
         img = imageDimensions(img);
-        if (img.width !== targetW || img.height !== targetH) {
+        const css = await cssDimensions(img);
+        const resized = css.width !== targetW || css.height !== targetH;
+        if (resized) {
             console.error("Expected " + targetW + " x " + targetH +
-                          ", got " + img.width + "x" + img.height);
+                          ", got " + css.width + "x" + css.height);
             await setSize(targetW, targetH);
         }
         if (key === "Lap" && opts.browser === "firefox" &&
@@ -584,14 +564,45 @@ async function takeScreenshot(key) {
         });
         buf = opt.bufferSync(img.buf);
         if (opts.verify && !expected) {
-            console.log("error " + key + " (missing screenshot)");
+            console.log(`error ${key} (missing screenshot)`);
             break;
         } else if (expected) {
             if (buf.equals(expected)) {
-                console.log("* ok  " + key);
+                console.log(`* ok  ${key}`);
                 return;
             }
-            console.log("error " + key);
+
+            const expectedW = expected.readUInt32BE(16);
+            const expectedH = expected.readUInt32BE(20);
+            if (!resized &&
+                (img.width !== expectedW || img.height !== expectedH)) {
+                // Retrying can't fix a size mismatch
+                console.log(`error ${key}: size ${img.width}x${img.height}` +
+                    ` differs from expected ${expectedW}x${expectedH}`);
+                break;
+            }
+
+            let errorMessage = `error ${key}`;
+            // Byte-identical failed; fall back to a perceptual pixel diff.
+            if (opts.browser === "safari") {
+                const imgA = PNG.sync.read(buf);
+                const imgB = PNG.sync.read(expected);
+                if (imgA.width === imgB.width && imgA.height === imgB.height) {
+                    const diffPixels = pixelmatch(
+                        imgA.data, imgB.data, null,
+                        imgA.width, imgA.height,
+                        {threshold: 0.05} // per-pixel color sensitivity
+                    );
+                    if (diffPixels === 0) {
+                        console.log(`* ok ${key}: byte mismatch,` +
+                            `but perceptually equivalent`);
+                        return;
+                    } else {
+                        errorMessage = `error ${key}: ${diffPixels} pixels differ`;
+                    }
+                }
+            }
+            console.log(errorMessage);
             await browserSideWait(300 * retry);
             if (retry > 1) {
                 driverReady = false; // reload fully

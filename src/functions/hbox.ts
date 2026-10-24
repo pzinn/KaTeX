@@ -13,12 +13,11 @@ import * as mml from "../buildMathML";
 defineFunction({
     type: "hbox",
     names: ["\\hbox"],
-    props: {
-        numArgs: 1,
-        argTypes: ["text"],
-        allowedInText: true,
-        primitive: true,
-    },
+    numArgs: 1,
+    argTypes: ["text"],
+    allowedInText: true,
+    primitive: true,
+
     handler({parser}, args) {
         return {
             type: "hbox",
@@ -26,13 +25,14 @@ defineFunction({
             body: ordargument(args[0]),
         };
     },
+
     htmlBuilder(group, options) {
-        const elements = html.buildExpression(group.body, options, false);
+        const elements = html.buildExpression(group.body, options.withFont(''), false);
         return makeFragment(elements);
     },
     mathmlBuilder(group, options) {
         return new MathNode(
-          "mrow", mml.buildExpression(group.body, options)
+          "mrow", mml.buildExpression(group.body, options.withFont(''))
         );
     },
 });

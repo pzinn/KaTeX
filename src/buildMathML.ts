@@ -12,11 +12,11 @@ import {_mathmlGroupBuilders as groupBuilders} from "./defineFunction";
 import {MathNode, TextNode} from "./mathMLTree";
 
 import type Options from "./Options";
-import type {AnyParseNode, SymbolParseNode} from "./parseNode";
 import type {DomSpan, HtmlDomNode} from "./domTree";
 import type {MathDomNode} from "./mathMLTree";
 import type {Mode} from "./types";
 import type {FontVariant, MathFont} from "./types/fonts";
+import type {AnyParseNode, SymbolParseNode} from "./types/nodes";
 
 const noVariantSymbols = new Set(["\\imath", "\\jmath"]);
 const rowLikeTypes = new Set(["mrow", "mtable"]);
@@ -32,9 +32,9 @@ export const makeText = function(
 ): TextNode {
     if (symbols[mode][text] && symbols[mode][text].replace &&
         text.charCodeAt(0) !== 0xD835 &&
-        !(ligatures.hasOwnProperty(text) && options &&
-          ((options.fontFamily && options.fontFamily.slice(4, 6) === "tt") ||
-           (options.font && options.font.slice(4, 6) === "tt")))) {
+        !(Object.prototype.hasOwnProperty.call(ligatures, text) &&
+          (options?.fontFamily?.slice(4, 6) === "tt" ||
+           options?.font?.slice(4, 6) === "tt"))) {
         text = symbols[mode][text].replace!;
     }
 
@@ -78,26 +78,28 @@ export const getVariant = (
     // Handle \text... font specifiers as best we can.
     // MathML has a limited list of allowable mathvariant specifiers; see
     // https://www.w3.org/TR/MathML3/chapter3.html#presm.commatt
-    if (options.fontFamily === "texttt") {
-        return "monospace";
-    } else if (options.fontFamily === "textsf") {
-        if (options.fontShape === "textit" &&
-            options.fontWeight === "textbf") {
-            return "sans-serif-bold-italic";
+    if (group.mode === "text") {
+        if (options.fontFamily === "texttt") {
+            return "monospace";
+        } else if (options.fontFamily === "textsf") {
+            if (options.fontShape === "textit" &&
+                options.fontWeight === "textbf") {
+                return "sans-serif-bold-italic";
+            } else if (options.fontShape === "textit") {
+                return "sans-serif-italic";
+            } else if (options.fontWeight === "textbf") {
+                return "bold-sans-serif";
+            } else {
+                return "sans-serif";
+            }
+        } else if (options.fontShape === "textit" &&
+                   options.fontWeight === "textbf") {
+            return "bold-italic";
         } else if (options.fontShape === "textit") {
-            return "sans-serif-italic";
+            return "italic";
         } else if (options.fontWeight === "textbf") {
-            return "bold-sans-serif";
-        } else {
-            return "sans-serif";
+            return "bold";
         }
-    } else if (options.fontShape === "textit" &&
-               options.fontWeight === "textbf") {
-        return "bold-italic";
-    } else if (options.fontShape === "textit") {
-        return "italic";
-    } else if (options.fontWeight === "textbf") {
-        return "bold";
     }
 
     const font = options.font;
